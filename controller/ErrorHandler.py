@@ -1,4 +1,6 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 exec(open(path_to_bot + "ini.py", "rb").read())
 

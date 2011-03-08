@@ -1,5 +1,7 @@
 #handles reading and writing to pricelist files
-path_to_bot = ""
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 from sys import *
 

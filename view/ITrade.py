@@ -1,10 +1,12 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
 import sys
 sys.path.append(path_to_bot + "view")
 
 import Interface
 import IChat
-from sikuli.Sikuli import *
 
 class ITrade(Interface.Interface):
     def __init__(self):
@@ -16,7 +18,22 @@ class ITrade(Interface.Interface):
         #usually this will be used to wait for trade request
         self.app_region.wait(self._images.get_trade(type), FOREVER)
         return True
-
+    def get_customer_name(self):
+        #will get customer name by clicking on chat area, and copying message
+        #then will edit string down
+        confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"))
+        hover(Location(confirm_button.x+600, confirm_button.y))
+        #copy test to variable "msg"
+        msg = "9:56 PM placeholder accepts trade invitation"
+        if " PM " in msg:
+            msg_split = msg.split(" PM ", 1)
+        else:
+            msg_split = msg.split(" AM ", 1)
+            
+        customer_name = msg_split[1].split(" accepts trade invitation", 0)
+        
+        return customer_name
+        
     def accept_trade(self):
         #click on the accept button for a trade
         print("accept_trade")

@@ -75,130 +75,21 @@
 </span><span class="cmt">#if you have any questions about it, I can be emailed at Darkray16@yahoo.com
 </span><span class="cmt">#This is a bot that with automated behavior to run independantly on Magic the Gathering: Online
 </span>
-<span class="cmt">#DEPENDENCIES
-</span><span class="cmt">#used in controller to set time of transaction for recording
-</span><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+path_to_bot = <span class="str">"c:/users/darkray16/desktop/my dropbox/mtgo bot/"</span>
+
+<span class="kw">exec</span>(open(path_to_bot + <span class="str">"ini.py"</span>, <span class="str">"rb"</span>).read())
+
 <span class="kw">import</span> sys
-sys.path.append(<span class="str">"c:/users/darkray16/desktop/my dropbox/mtgo bot"</span>)
+
+sys.path.append(path_to_bot)
+
 <span class="kw">import</span> model
 <span class="kw">import</span> view
 <span class="kw">import</span> controller
 
-<span class="kw">exec</span>(open(<span class="str">"c:/users/darkray16/desktop/my dropbox/mtgo bot/ini.py"</span>, <span class="str">"rb"</span>).read())
 
-
-classified_ad = <span class="str">"Human BUYING     Frost Titan [s4] | Inferno Titan [s3] | Grave Titan [s9] | Devastating Summons [s1] | Mox Opal [s9] | Contested Zone [s2]  Please PM me first"</span>
-classified_ad_selling = <span class="str">"Human SELLING ZEN ZEN WWK ZZW [s1][s3] | Slagstorm 2x for [s3] | Kargan Dragonlord [s1][s1] | Demon of Death's Gate [s4] | Elvish Archdruid [s1]"</span>
-
-
-selling_greeting = <span class="str">"Entering selling mode.  When you are finished, please type the word done into the chat window"</span>
-
-<span class="kw">def</span> memorize(func):
-    <span class="str">"""
-    Cache the results of the function so it doesn't need
-    to be called again, if the same arguments are provided
-    """</span>
-    cache = {}
-
-    <span class="kw">def</span> wrapper(*args):
-        <span class="kw">if</span> args <span class="kw">in</span> cache:
-            <span class="kw">return</span> cache[args]
-
-        result = func(*args)
-        cache[args] = result
-        <span class="kw">return</span> result
-    <span class="kw">return</span> wrapper
-
-
-
-<span class="kw">class</span> ErrorHandler(Exception):
-    <span class="cmt">#custom Exception parent class to handle errors
-</span>
-    <span class="kw">def</span> __init__(self, message):
-        ERRORHANDLERAPP = settings[<span class="str">"ERRORHANDLERAPP"</span>]
-        self._errormsg = message
-        ErrorHandlerApp = App(ERRORHANDLERAPP)
-        <span class="kw">if</span> <span class="kw">not</span> ErrorHandlerApp.window():
-            App.open(ERRORHANDLERAPP); <span class="skw">wait</span>(<span class="dig">2</span>)
-        ErrorHandlerApp.focus(); <span class="skw">wait</span>(<span class="dig">1</span>)
-        self.__openRecord()
-        self.__writeRecord()
-        ErrorHandlerApp.close()
-    <span class="kw">def</span> __openRecord(self):
-        <span class="cmt">#this will be different depending on the application
-</span>        <span class="kw">pass</span>
-    <span class="kw">def</span> __writeRecord(self):
-        <span class="skw">type</span>(self._errormsg + <span class="str">"\n"</span>)
-
-
-<span class="kw">class</span> Bot(object):
-    <span class="cmt">#this is at the highest level and owns all other classes
-</span>    <span class="cmt">#its a wrapper class that will encompass every other class
-</span>    __single = None
-
-    <span class="kw">def</span> __init__(self):
-        <span class="cmt">#no more than one instance is needed at a time
-</span>        <span class="kw">if</span> Bot.__single:
-            <span class="kw">raise</span> ErrorHandler(<span class="str">"Bot class cannot be instantiated more than once"</span>)
-        Bot.__single = self
-
-        self.primary_controller = controller.MainController()
-
-    <span class="kw">def</span> main(self):
-        <span class="cmt">#run when script starts
-</span>        self.primary_controller.startup()
-
-    <span class="kw">def</span> do_function(self):
-        self.primary_controller.trade_mode()
-
-
-
-<span class="kw">class</span> Customer(object):
-
-    <span class="kw">def</span> __init__(self, name):
-        <span class="cmt">#set the name of customer upon initialization
-</span>        self.name = name
-
-    <span class="kw">def</span> set_name(self, name):
-        <span class="cmt">#Set the name of the customer, e.g. their screen name
-</span>        self.name = name
-
-    <span class="kw">def</span> get_name(self):
-        <span class="cmt">#Get the name of the customer, e.g. their screen name
-</span>        <span class="kw">return</span> self.name
-
-    <span class="kw">def</span> set_mode(self, mode):
-        <span class="cmt">#find whether customer wants to buy or sell
-</span>        self.mode = mode
-
-    <span class="kw">def</span> get_mode(self):
-        <span class="kw">return</span> self.mode
-
-
-<span class="kw">class</span> RecordToFile(object):
-    <span class="cmt">#this object will write the transaction to a file
-</span>    <span class="cmt">#it will take care of opening, writing, and reading transaction history
-</span>
-    <span class="kw">def</span> __init__(self, transaction):
-        self.__record = transaction
-
-    <span class="kw">def</span> open_record(self, filename):
-        <span class="cmt">#wrapper function for open file
-</span>        <span class="kw">pass</span>
-
-    <span class="kw">def</span> write_record(self):
-        <span class="cmt">#write the record property to an already opened file
-</span>        <span class="kw">pass</span>
-
-    <span class="kw">def</span> read_record(self, file):
-        <span class="cmt">#read an already opened file
-</span>        <span class="kw">pass</span>
-
-
-
-<span class="cmt">#run the bot
-</span>Bot_App = Bot()
-Bot_App.do_function()
+bot_app = controller.MainController()
+bot_app.trade_mode()
 </pre>
 </body>
 </html>

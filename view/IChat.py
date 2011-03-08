@@ -1,8 +1,9 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
 import sys
 sys.path.append(path_to_bot + "view")
 import Interface
-from sikuli.Sikuli import *
 
 class IChat(Interface.Interface):
     

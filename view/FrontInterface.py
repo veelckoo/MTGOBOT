@@ -1,4 +1,6 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
 import sys
 sys.path.append(path_to_bot + "view")
 import Interface
@@ -6,7 +8,6 @@ import ITrade
 import ISell
 import IClassified
 import IChat
-from sikuli.Sikuli import *
 
 class FrontInterface(Interface.Interface):
     #this class will handle all interaction with the Magic Online App

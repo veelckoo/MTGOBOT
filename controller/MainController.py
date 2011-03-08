@@ -1,6 +1,11 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 exec(open(path_to_bot + "ini.py", "rb").read())
+
+#date required for transaction recording
+from datetime import datetime
 
 import sys
 sys.path.append(path_to_bot + "model")
@@ -21,8 +26,6 @@ class MainController(object):
     #it will contain the logic and manipulate all the data
     #and pass data between the classes it owns
     
-    __single = None
-    
     def __init__(self):
         
         self.Itrade = ITrade.ITrade()
@@ -34,18 +37,14 @@ class MainController(object):
         self.selling_greeting = """Entering selling mode.  When you are finished taking products, please type the word \"DONE\" in all lowercase"""
         self.buying_greeting = """Entering buying mode.  I will search your collection for products to buy.  Please wait..."""
         
-        #make controller object a singleton class.  only one instance should be run at a time 
-        if MainController.__single:
-            raise ErrorHandler.ErrorHandler("Controller class cannot be instantiated more than once")
-        MainController.__single = self
         
         #run the controllers startup method on instanciation
         self.mode = settings["DEFAULTMODE"]
         
     def startup(self):
         #log into Magic Online
-        self.interface._define_region()
-        if (self.Isigninlog_in()):
+        self.define_region()
+        if self.Isignin_in.log_in():
             print("logged in")
             #run maintanence and inventory check
             self.maintenance_mode()
@@ -81,6 +80,7 @@ class MainController(object):
                 #open a session to record data to
                 session = Session.Session()
                 
+                customer_name = self.Itrade.get_customer_name()
                 
                 #enter selling mode
                 if self.get_mode() == "sell":
@@ -106,13 +106,14 @@ class MainController(object):
                         receipt = {"sold":{}, "bought":{}}
                         for product in products_bought:
                             receipt["bought"][product["name"]] = product["quantity"]
-                    
+                        receipt["customer"] = customer_name
                 
                 if receipt is not None:
                     session.set_transaction(receipt)
                     session.set_time(datetime.now())
                     session.record()
                     del(session)
+                    del(customer_name)
                 else:
                     #record trade failure
                     pass

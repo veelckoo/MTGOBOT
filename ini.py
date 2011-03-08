@@ -1,7 +1,7 @@
 from sikuli.Sikuli import *
 
 #this object will hold all global settings for the application
-settings = {"ERRORHANDLERAPP":"Notepad", "LOGIN_WAIT":45, "PASSWORD":"yourpasswordhere", "NETWORK":False, "DEFAULTMODE":"sell"}
+settings = {"ERRORHANDLERAPP":"Notepad", "LOGIN_WAIT":45, "USERNAME": "yourmagiconlineusername", "PASSWORD":"yourpasswordhere", "NETWORK":False, "DEFAULTMODE":"buy"}
 
 #default is 1
 Settings.MoveMouseDelay = 0.2

@@ -1,4 +1,6 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
 import sys
 sys.path.append(path_to_bot + "view")
 import PackPricesDAL
@@ -7,7 +9,6 @@ import Product
 
 sys.path.append(path_to_bot + "view")
 import ITrade
-from sikuli.Sikuli import *
 
 class IBuy(ITrade.ITrade):
     #this class is used when the bot is put into buy mode during a trade

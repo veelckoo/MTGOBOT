@@ -1,4 +1,7 @@
-path_to_bot = ""
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
 import sys
 sys.path.append(path_to_bot + "model")
 import DataStorage
