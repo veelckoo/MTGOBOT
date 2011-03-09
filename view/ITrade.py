@@ -22,9 +22,10 @@ class ITrade(Interface.Interface):
         #will get customer name by clicking on chat area, and copying message
         #then will edit string down
         confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"))
-        hover(Location(confirm_button.x+600, confirm_button.y))
+        click(Location(confirm_button.x+600, confirm_button.y))
+        type("c", KEY_CTRL)
         #copy test to variable "msg"
-        msg = "9:56 PM placeholder accepts trade invitation"
+        msg = Env.getClipboard()
         if " PM " in msg:
             msg_split = msg.split(" PM ", 1)
         else:
@@ -51,10 +52,10 @@ class ITrade(Interface.Interface):
     def set_windows(self):
         #set the regions for the interactions
         #get match ogbject of giving window for use with making a region
-        giving_window = exists(self._images.get_trade("giving_window"), 40)
+        giving_window = exists(Pattern(self._images.get_trade("giving_window")).similar(0.9), 40)
         self.giving_window_region = Region(giving_window.getRect())
-        t_window = exists(self._images.get_trade("taking_window"))
-        self.taking_window_region = Region(t_window.getRect())
+        taking_window = exists(Pattern(self._images.get_trade("taking_window")).similar(0.9))
+        self.taking_window_region = Region(taking_window.getRect())
 
     def turn_page(self, direction):
         #turns the page if no elements of interest found on current page

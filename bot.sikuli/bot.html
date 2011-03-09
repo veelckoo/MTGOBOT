@@ -74,8 +74,8 @@
 </span><span class="cmt">#No one is allowed to modify this code
 </span><span class="cmt">#if you have any questions about it, I can be emailed at Darkray16@yahoo.com
 </span><span class="cmt">#This is a bot that with automated behavior to run independantly on Magic the Gathering: Online
-</span>
-path_to_bot = <span class="str">"c:/users/darkray16/desktop/my dropbox/mtgo bot/"</span>
+</span><span class="kw">from</span> sikuli.Sikuli <span class="kw">import</span> *
+path_to_bot = getBundlePath().split(<span class="str">"bot.sikuli"</span>)[<span class="dig">0</span>]
 
 <span class="kw">exec</span>(open(path_to_bot + <span class="str">"ini.py"</span>, <span class="str">"rb"</span>).read())
 

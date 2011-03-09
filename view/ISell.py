@@ -20,9 +20,6 @@ class ISell(ITrade.ITrade):
         
     def tickets_to_take_for_cards(self):
         #scan which cards taken and how many and determine tickets to take ticket
-        
-        #define the region as the section that shows the products taken by customer
-        region = self.giving_window_region
         #found is a dictionary of all cards found, key is name of card, value is number taken
         found = []
         cards = self._image.get_cards()
@@ -40,7 +37,7 @@ class ISell(ITrade.ITrade):
         found = self.search_for_images_sale()
         
         #in case the user has canceled
-        if not number_of_tickets:
+        if not found:
             return False
             
         self.products_giving = found
@@ -66,12 +63,13 @@ class ISell(ITrade.ITrade):
         self.last_mouse_position = False
         #list of all images found
         products = []
+        
         #keep a record of product names found to prevent duplicates
         regular_scroll_bar = None
         mini_scroll_bar = None
         scroll_bar = self.giving_window_region.exists(self._images.get_trade(("scroll_bar_regular")))
         if not scroll_bar:
-            scroll_bar = region.exists(self._images.get_trade(("scroll_bar_mini")))
+            scroll_bar = self.giving_window_region.exists(self._images.get_trade(("scroll_bar_mini")))
         #hover over scroll bar for mouse wheel manipulation
         scroll_bar_loc = scroll_bar.getTarget()
         #scan_region will be used as the region to scan for the packs and number of packs
@@ -98,7 +96,7 @@ class ISell(ITrade.ITrade):
                     for key in range(len(numbers_list)):
                         if key == 0:
                             continue
-                        searchPattern = Pattern(numbers_list[key]).similar(0.8)
+                        searchPattern = Pattern(numbers_list[key]).similar(0.9)
                         if(scan_region.exists(searchPattern)):
                             amount = key
                             #for booster packs, there is a specific order in which they appear in the list,
@@ -315,7 +313,7 @@ class ISell(ITrade.ITrade):
                                 
                                 break
                             
-                        product_obj = Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
+                        product_obj = Product.Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
                         giving_products_found.append(product_obj)
                                             
                         if amount == 0:

@@ -10,11 +10,10 @@ class Session(object):
     #object to contain info on each trade session
     
     def __init__(self):
-        self.db = DataStorage.DataStorage("Notepad")
+        self.db = DataStorage.DataStorage()
     
     def record(self):
         #send the session info to storage
-        #calls the DataStorage class in order to send to storage
         self.db.write(self.transaction)
         
     #all the get and set methods

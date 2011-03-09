@@ -2,8 +2,8 @@
 #No one is allowed to modify this code
 #if you have any questions about it, I can be emailed at Darkray16@yahoo.com
 #This is a bot that with automated behavior to run independantly on Magic the Gathering: Online
-
-path_to_bot = "c:/users/darkray16/desktop/my dropbox/mtgo bot/"
+from sikuli.Sikuli import *
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 exec(open(path_to_bot + "ini.py", "rb").read())
 

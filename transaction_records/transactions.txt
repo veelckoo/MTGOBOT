@@ -1,0 +1,4 @@
+mode: bought  mode: sold  ROE:1 
+mode: bought  mode: sold  WWK:1 MBS:1 
+mode: bought  mode: sold  SOM:3 MBS:2 
+mode: bought  mode: sold  WWK:2 MBS:1 ZEN:2 

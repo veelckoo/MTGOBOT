@@ -231,7 +231,7 @@ class IBuy(ITrade.ITrade):
                                 
                                 break
                             
-                        product_obj = Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
+                        product_obj = Product.Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
                         receiving_products_found.append(product_obj)
                                             
                         if amount == 0:

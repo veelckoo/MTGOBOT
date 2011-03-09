@@ -118,11 +118,6 @@ class MainController(object):
                     #record trade failure
                     pass
                     
-        #check if bot is part of a bot network before trying to transfer items
-        if(self.settings["NETWORK"]):
-        
-            self.transfer_mode()
-        
         self.trade_mode()
         
     def transfer_mode(self):

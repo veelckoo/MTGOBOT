@@ -5,6 +5,8 @@ As of March 7th 2011, the bot is able to interact with Magic Online version 3.  
 Disclaimer:
 I am a new programmer who is still studying much.  If you find some places in the app which I can improve, please send me an email.  It would be greatly appreciated.
 
+Demo:
+You can see a demonstration of the bot at: http://www.youtube.com/watch?v=wQadgKVrGYs
 Requirements:
 Sikuli
 Sikuli is a graphical user scripting language which uses Python syntax.  You can download this at http://sikuli.org and there you can read about the wonderful language.  I chose Sikuli to script in, instead of AutoIt because at the time I wanted to learn Python, and since Sikuli uses Python syntax, it was perfect.  
