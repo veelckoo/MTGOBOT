@@ -35,6 +35,16 @@ class IBuy(ITrade.ITrade):
         #will take all packs found in the customers collection and in buy list
         self.go_to_tickets_packs()
         
+        #we don't want to take tickets, just products
+        print("scanning for " + str(self._images.get_ticket_text()))
+        hover(Location(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()))
+        if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
+            print("event ticket found, moving down")
+            self.topmost_product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()+16, 159, 15)
+            self.topmost_product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+16, 40, 15)
+        print("LOC IS : X =" + str(self.topmost_product_name_area.getX()) + " AND Y = " + str(self.topmost_product_name_area.getY()))
+        
+        
         #declare variable to hold amount of tickets the customer should take
         tickets_to_give = 0
         #holds the prices for all the packs
@@ -94,18 +104,11 @@ class IBuy(ITrade.ITrade):
         confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"), 30)
         #find the position in the window where the topmost product would be located
         
-        self.topmost_product_name_area = Region(confirm_button.getX()-271, confirm_button.getY()+47, 159, 13)
-        self.topmost_product_quantity_area = Region(confirm_button.getX()-113, confirm_button.getY()+47, 40, 13)
+        self.topmost_product_name_area = Region(confirm_button.getX()-271, confirm_button.getY()+47, 159, 15)
+        self.topmost_product_quantity_area = Region(confirm_button.getX()-113, confirm_button.getY()+47, 40, 15)
         
         name_sort_button_location = Location(confirm_button.getX()-231, confirm_button.getY()+23)
         self._slow_click(loc=name_sort_button_location)
-        
-        #we don't want to take tickets, just products
-        if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
-            print("event ticket found, moving down")
-            self.topmost_product_name_area = Region(self.topmost_product_area.getX(), self.topmost_product_area.getY()+18, 159, 13)
-            self.topmost_product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+18, 40, 9)
-        print("LOC IS : X =" + str(self.topmost_product_name_area.getX()) + " AND Y = " + str(self.topmost_product_name_area.getY()))
         
         tickets_to_give = 0
         tickets_for_packs = self.take_packs()

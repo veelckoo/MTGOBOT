@@ -14,7 +14,7 @@ class ImagesModel(object):
         return self.__ok_button
         
     #stores image of a ticket
-    __ticket =  "../Images/trade/get_ticket/ticket.png"
+    __ticket =  "../Images/product/misc/ticket.png"
     def get_ticket(self):
         return self.__ticket
         
