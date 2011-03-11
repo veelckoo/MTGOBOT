@@ -37,11 +37,7 @@ class ImagesModel(object):
         filepath += "number_" + str(number) + ".png"
         return filepath
     def get_all_numbers_as_list(self, category, phase=None):
-        numbers_list = {}
-        for i in range(75):
-            if i == 0:
-                continue
-            numbers_list[i] = self.get_number(number=i, category=category, phase=phase)
+        numbers_list = dict((num, self.get_number(number=num, category=category, phase=phase)) for num in range(75) if num is not 0)
         return numbers_list  
           
     #stores images for the classified window

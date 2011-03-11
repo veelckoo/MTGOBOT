@@ -47,7 +47,7 @@ class IChat(Interface.Interface):
         
     def close_current_chat(self):
         #closes the current chat window that is minimized to the right
-        close_button=Pattern(self._images.get_chat_window("expand_close")).targetOffset(11, 4)
+        close_button = Pattern(self._images.get_chat_window("expand_close")).targetOffset(11, 4)
         if self.app_region.exists(close_button):
             self._slow_click(target=close_button)
             wait(3)

@@ -36,13 +36,10 @@ class IBuy(ITrade.ITrade):
         self.go_to_tickets_packs()
         
         #we don't want to take tickets, just products
-        print("scanning for " + str(self._images.get_ticket_text()))
         hover(Location(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()))
         if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
-            print("event ticket found, moving down")
             self.topmost_product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()+16, 159, 15)
             self.topmost_product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+16, 40, 15)
-        print("LOC IS : X =" + str(self.topmost_product_name_area.getX()) + " AND Y = " + str(self.topmost_product_name_area.getY()))
         
         
         #declare variable to hold amount of tickets the customer should take
@@ -63,15 +60,12 @@ class IBuy(ITrade.ITrade):
         while found:
             found = False
             for pack_abbr in pack_names_keys:
-                print("searching for " + str(pack_names_images[pack_abbr]))
                 if self.topmost_product_name_area.exists(Pattern(pack_names_images[pack_abbr]).similar(0.8)):
-                    print("found " + str(pack_abbr) + "!")
                     found = True
                     amount = 0
                     for num in range(len(number_list)):
                         if num == 0:
                             continue
-                        print("searching for number: " + str(number_list[num]))
                         if self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9)):
                             amount = num
                             self.take_single_pack(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
@@ -112,7 +106,6 @@ class IBuy(ITrade.ITrade):
         
         tickets_to_give = 0
         tickets_for_packs = self.take_packs()
-        print("Reached 109 and tickets = " + str(tickets_for_packs))
         #if customer cancels trade
         if tickets_for_packs is False:
             return False
@@ -124,8 +117,6 @@ class IBuy(ITrade.ITrade):
             return False
         else:
             tickets_to_give += tickets_for_cards
-        print("Reached 120")
-        print(str(tickets_to_give))
         return tickets_to_give
         
     def preconfirm_scan_purchase(self):
@@ -209,11 +200,9 @@ class IBuy(ITrade.ITrade):
             
             found=True
             while found:
-                print("while loop run")
                 hover(Location(receiving_number_region.getX(), receiving_number_region.getY()))
                 found=False
                 for product_abbr in product_names_list:
-                    print("looking for " + str(product_abbr))
                     
                     try:
                         product = self._images.get_packs_text(phase="confirm", packname=product_abbr)
@@ -224,16 +213,13 @@ class IBuy(ITrade.ITrade):
                             continue
                     
                     if receiving_name_region.exists(Pattern(product).similar(0.8)):
-                        print("confirmation window: "+product_abbr+" found")
                         
                         #if still at 0 after for loop, error raised
                         amount = 0
                         for number in range(len(numbers)):
                             if number == 0:
                                 continue
-                            print(numbers[number])
                             if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
-                                print("CURRENT NUMBER STRING FOUND " + str(numbers[number]))
                                 amount = number
                                 
                                 #packs are listed in Magic in the same sequence they are listed in the list of pack keys,
@@ -262,7 +248,6 @@ class IBuy(ITrade.ITrade):
             expected_number = 0
             for product in receiving_products_found:
                 expected_number += product["quantity"] * product["buy"]
-            print(str(expected_number))
             
             if expected_number == 0:
                 return False
@@ -272,7 +257,6 @@ class IBuy(ITrade.ITrade):
             if giving_name_region.exists(ticket_text_image):
                 expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", phase="confirm")).similar(0.7)
                 if giving_number_region.exists(expected_number_image):
-                    print("event ticket number found")
                     
                     return receiving_products_found
                 else:
@@ -313,7 +297,6 @@ class IBuy(ITrade.ITrade):
             self.Ichat.close_current_chat()
         
             if products_bought:
-                print("passed final check")
                 
                 self._slow_click(target=self._images.get_trade(phase="confirm", filename="confirm_button"))
                 wait(Pattern(self._images.get_ok_button()), 600)
@@ -322,7 +305,6 @@ class IBuy(ITrade.ITrade):
                 return products_bought
                 
             else:
-                print("failed final check")
                 cancel_button = self.app_region.exists(self._images.get_trade(phase="confirm", filename="cancel_button"))
                 if cancel_button:
                     self.slow_click(loc=cancel_button.getTarget())

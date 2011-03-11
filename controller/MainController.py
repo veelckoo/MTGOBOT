@@ -45,7 +45,6 @@ class MainController(object):
         #log into Magic Online
         self.define_region()
         if self.Isignin_in.log_in():
-            print("logged in")
             #run maintanence and inventory check
             self.maintenance_mode()
             #once everything is clear and ready, start selling
@@ -81,7 +80,7 @@ class MainController(object):
                 session = Session.Session()
                 
                 #if done too quickly, the customers name isn't in place yet
-                wait(2)
+                wait(3)
                 customer_name = self.Itrade.get_customer_name()
                 
                 #enter selling mode
