@@ -31,10 +31,6 @@ class ISell(ITrade.ITrade):
         """
         returns the number of tickets to takes in the form of the Images.number[] format
         """
-            
-        #start search for pack image
-        #call image search function with giving window region and all pack images as parameters
-        found = self.search_for_images_sale()
         
         #in case the user has canceled
         if not found:
@@ -47,23 +43,21 @@ class ISell(ITrade.ITrade):
         #return the the number of packs that should be taken, number in image form
         return total_tickets_to_take
     
-    def search_for_images_sale(self):
+    def search_for_products(self):
         print("running search for images")
         #searches a certain area for any image in a dictionary
-        
+
         #combine all cards and packs for sale into a list
-        pack_names_list = self._images.get_pack_keys()
-        
-        images = self._images.get_packs_text(phase="preconfirm")
-        
-        numbers_list = self._images.get_number(category = "trade", subcategory = "preconfirm")
-        
+        product_names_list = self._images.get_pack_keys()
+        product_names_list.extend(self._images.get_card_keys())
+        numbers_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+
         #if area searched contains a full sized scroll bar, then scroll down
         #variable to hold last mouse position for the scrollbar movement code
         self.last_mouse_position = False
         #list of all images found
         products = []
-        
+
         #keep a record of product names found to prevent duplicates
         regular_scroll_bar = None
         mini_scroll_bar = None
@@ -80,52 +74,55 @@ class ISell(ITrade.ITrade):
         found = True
         while found:
             found = None
-            for product_abbr in pack_names_list:
-            
+            for product_abbr in product_names_list:
+
                 print("reached line 479 pack_text_name = " + product_abbr)
-                #determine which packs are in the giving window
-                pack = self._images.get_packs_text(phase="preconfirm", filename=product_abbr)
-                
-                if scan_region.exists(Pattern(pack).similar(0.9)):
-                    
+                #if the product_abbr is not a pack name, it must be a card name, if not then skip the product
+                try:
+                    product = self._images.get_packs_text(phase="preconfirm", packname=product_abbr)
+                except KeyError:
+                    try:
+                        product = self._images.get_card_text(phase="preconfirm", cardname=product_abbr)
+                    except KeyError:
+                        continue
+
+                if scan_region.exists(Pattern(product).similar(0.9)):
                     found = True
-                    print(str(pack) + " found!")
-                    
-                    print(str(product_abbr))
-                    
+                    print(str(product) + " found!")
+
                     for key in range(len(numbers_list)):
                         if key == 0:
                             continue
+                        
+                        print("checking number: " + str(key) + " , " + numbers_list[key])
                         searchPattern = Pattern(numbers_list[key]).similar(0.9)
                         if(scan_region.exists(searchPattern)):
                             amount = key
                             #for booster packs, there is a specific order in which they appear in the list,
                             #when a pack is found, remove all packs before and including that pack in the keys
                             #list as they will not appear any further below
-                            pack_index = pack_names_list.index(product_abbr)+1
-                            pack_names_list = pack_names_list[pack_index:]
-                            
+                            pack_index = product_names_list.index(product_abbr)+1
+                            product_names_list = product_names_list[pack_index:]
                             break
-                            
+
                     print("amount = "+str(key))
                     product = Product.Product(name = product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity = amount)
                     products.append(product)
-                    
+
                     wheel(scroll_bar_loc, WHEEL_DOWN, 2)
-                
+
                 if found == True:
                     print("found is true")
                     break
-            
+
             #if first scan area was already set, then relative distance from last region
             #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
             scan_region = Region(scan_region.getX(), scan_region.getY()+17, scan_region.getW(), scan_region.getH())
             print("reassigning scan region")
         print("finished while loop")
-        
+    
         #in case the customer has canceled the trade
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
-            self._slow_click(loc=self._images.get_ok_button())
             return False
         
         return products
@@ -152,25 +149,20 @@ class ISell(ITrade.ITrade):
         while number - taken > 0:
             print("Taken = " + str(taken))
             if number - taken >=10:
-                print("Taking 10")
-                print("calling click_tickets with following params, take: 10 taken:" + str(taken)) 
-                taken = self.click_tickets(take=10, taken=taken, cache=location_cache)
-                print("4 tickets taken")
+                click_result = self.click_tickets(take=10, taken=taken, cache=location_cache)
             elif number - taken < 10 and number - taken >= 4:
-                print("Taking 4")
-                print("calling click_tickets with following params, take:4 taken:" + str(taken))
-                taken = self.click_tickets(take=4, taken=taken, cache=location_cache)
-                print("4 tickets taken")
+                click_result = self.click_tickets(take=4, taken=taken, cache=location_cache)
+                
             #if less than 4 tickets, then take single tickets
             elif number - taken < 4:
-                print("Taking 1")
-                print("calling click_tickets with following params, take:1 taken:" + str(taken))
                 for i in range(number-taken):
-                    taken = self.click_tickets(take=1, taken=taken, cache=location_cache)
-            print("finished one while loop, total tickets take = "+str(taken))
-            #taken is assigned false is any click function is interrupted by the user canceling the trade
-            if not taken:
+                    click_result = self.click_tickets(take=1, taken=taken, cache=location_cache)
+                    if not click_result:
+                        return False
+            if not click_result:
                 return False
+            else:
+                taken = click_result
         print("finished taking tickets")
         del(location_cache)
         return True
@@ -183,32 +175,42 @@ class ISell(ITrade.ITrade):
         click_check is used to see if the image could be found, if not this returns False,
         signifying that the trade was probably caneled"""
         
-        if cache["ticket"] is None:
+        #THIS METHOD IS IN NEED OF HEAVY OPTIMIZATION
         
-            click_check = self._slow_click(target=self._images.get_ticket(), button="Right")
-            if not click_check:
-                return False
-            cache["ticket"] = Env.getMouseLocation()
+        ticket_location = self.app_region.exists(self._images.get_ticket())
+        if ticket_location:
+            #first if else deals with caching ticket location if necessary
+            if cache["ticket"] is None:
+                if take == 1:
+                    doubleClick(cache["ticket"])
+                    taken += take
+                    return taken
+                else:
+                    click_check = self._slow_click(loc=ticket_location.getTarget(), button="Right")
+                    if not click_check:
+                        return False
+                cache["ticket"] = ticket_location.getTarget()
+            else:
+                if take == 1:
+                    doubleClick(cache["ticket"])
+                    taken += take
+                    return taken
+                click_check = self._slow_click(loc=cache["ticket"], button="Right")
+                if not click_check:
+                    return False
+                    
+            if cache["take_"+str(take)+"_tickets"] is None:
+                self._slow_click(target=self._images.get_amount(take))
+                cache["take_"+str(take)+"_tickets"] = Env.getMouseLocation()
+                taken += take
+            else:
+                self._slow_click(loc=cache["take_"+str(take)+"_tickets"])
+                taken += take
+            return taken
         else:
-            click_check = self._slow_click(loc=cache["ticket"], button="Right")
-            if not click_check:
-                return False
-        if cache["take_"+str(take)+"_tickets"] is None:
-            print("Line 658, taken = "+str(taken) + " and take=" + str(take))
-            click_check = self._slow_click(target=self._images.get_amount(take))
-            if not click_check:
-                return False
-            cache["take_"+str(take)+"_tickets"] = Env.getMouseLocation()
-            taken += take
-            print("Line 662, taken = "+str(taken) + " and take=" + str(take))
-        else:
-            click_check = self._slow_click(loc=cache["take_"+str(take)+"_tickets"])
-            if not click_check:
-                return False
-            print("Line 663, taken = "+str(taken) + " and take=" + str(take))
-            taken += take
-            print("Line 665, taken = "+str(taken) + " and take=" + str(take))
-        return taken
+            #no ticket found
+            self.Ichat.type_msg("Not enough tickets available.")
+            return False
     
     def return_ticket(self, number):
         #clicks on the decrease ticket to return one ticket
@@ -220,7 +222,7 @@ class ISell(ITrade.ITrade):
 
     def preconfirm_scan_sale(self, products_giving):
         """takes the total number of products taken by customer and checks to see if the correct amount of tickets are in the taking window"""
-        numbers = self._images.get_number(category="trade", subcategory="preconfirm")
+        numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
         
         ticket = self._images.get_ticket_text()
         
@@ -238,7 +240,7 @@ class ISell(ITrade.ITrade):
         if scan_region_product.exists(ticket):
             print("found ticket in taking window")
             #for performance, start the number scan with the expected number
-            if scan_region_number.exists(self._images.get_number(number=expected_total, category="trade", subcategory="preconfirm")):
+            if scan_region_number.exists(self._images.get_number(number=expected_total, category="trade", phase="preconfirm")):
                 tickets_found = expected_total
             #in case user canceled trade
             elif self.app_region.exists(self._images.get_trade("canceled_trade")):
@@ -269,8 +271,7 @@ class ISell(ITrade.ITrade):
             #keeps record of products found and their amount so far
             giving_products_found = []
             pack_names_keys = self._images.get_pack_keys()
-            pack_names = self._images.get_packs_text(phase="confirm")
-            numbers = self._images.get_number(number=None, category="trade", subcategory="confirm")
+            numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
             #confirm products receiving
             #set the regions of a single product and and the amount slow
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
@@ -292,7 +293,16 @@ class ISell(ITrade.ITrade):
                 found=False
                 for product_abbr in pack_names_keys:
                     print("looking for " + str(product_abbr))
-                    if giving_name_region.exists(Pattern(pack_names[product_abbr]).similar(0.8)):
+                    
+                    try:
+                        product = self._images.get_packs_text(phase="confirm", packname=product_abbr)
+                    except KeyError:
+                        try:
+                            product = self._images.get_card_text(phase="confirm", cardname=product_abbr)
+                        except KeyError:
+                            continue
+                        
+                    if giving_name_region.exists(Pattern(product).similar(0.8)):
                         print("confirmation window: "+product_abbr+" found")
                         
                         #if still at 0 after for loop, error raised
@@ -339,7 +349,7 @@ class ISell(ITrade.ITrade):
             hover(Location(receiving_number_region.getX(), receiving_number_region.getY()))
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if receiving_name_region.exists(ticket_text_image):
-                expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", subcategory="confirm")).similar(0.7)
+                expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", phase="confirm")).similar(0.7)
                 if receiving_number_region.exists(expected_number_image):
                     print("event ticket number found")
                     
@@ -352,14 +362,28 @@ class ISell(ITrade.ITrade):
         #calls calculate_tickets_to_take to get the number of tickets to take and proceeds to take them, 
         #does a check to make sure correct ticket amount was taken
         
-        self.Ichat.wait_for_message(string="done", duration=1200)
+        message_found = self.Ichat.wait_for_message(string="done", duration=120)
+        
+        #if user has canceled or there was any other problem
+        if not message_found:
+            self.cancel_trade()
+            return False
         
         self.Ichat.type_msg("Calculating tickets to take.  Please wait..")
         
-        number_of_tickets = self.tickets_to_take_for_packs()
+        products_giving = self.search_for_products()
         
-        #in case the user has canceled
+        number_of_tickets = self.calculate_products_to_tickets(products_giving)
+        
+        #if user has canceled or there was any other problem
+        if not products_giving:
+            self.cancel_trade()
+            return False
+        
+        
+        #if user has canceled or there was any other problem
         if not number_of_tickets:
+            self.cancel_trade()
             return False
             
         print("complete_sale step1 finished, number of tickets to take:%i" % number_of_tickets)
@@ -370,26 +394,15 @@ class ISell(ITrade.ITrade):
         take_result = self.take_ticket(number_of_tickets)
         #if trade was canceled or take tickets failed
         if not take_result:
-            if self.app_region.exists(self._images.get_trade("cancel_button")):
-                self._slow_click(self._images.get_trade("cancel_button"))
-            elif self.app_region.exists(self._images.get_trade("canceled_trade")):
-                self._slow_click(self._images.get_ok_button())
+            self.cancel_trade()
             return False
         
         
-        #INSERT PRE-CONFIRM TRANSACTION CHECK HERE#
-        
-        #image of the total number of tickets to take
-        number_image = self._images.get_number(number = number_of_tickets, category = "trade", subcategory = "preconfirm")
-        
-        preconfirm = self.preconfirm_scan_sale(products_giving=self.products_giving)
+        preconfirm = self.preconfirm_scan_sale(products_giving=products_giving)
         
         #if trade was canceled or preconfirm failed
         if not preconfirm:
-            if self.app_region.exists(self._images.get_trade("cancel_button")):
-                self._slow_click(self._images.get_trade("cancel_button"))
-            elif self.app_region.exists(self._images.get_trade("canceled_trade")):
-                self._slow_click(self._images.get_ok_button())
+            self.cancel_trade()
             return False
         
         self.go_to_confirmation()

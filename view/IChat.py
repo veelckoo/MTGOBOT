@@ -40,22 +40,11 @@ class IChat(Interface.Interface):
     def wait_for_message(self, string, duration, greetings = None):
         match = self.app_region.exists(self._images.get_chat_text(string), duration)
         
-        #if the word to search for already appears in the customer greeting then
-        #must account for that and search for a second instance of that word
+        if not match:
+            return False
+        else:
+            return True
         
-        #this will account for the word also appearing in the bots messages and hhhhy
-        if greetings:
-            greetings_list = set(greetings)
-            if type(string).__name__ == "string":
-                if string in greetings:
-                    pass
-                    
-            if type(string).__name__ == "list":
-                for word in string:
-                    if word in greetings:
-                        word_found = True
-                        break
-    
     def close_current_chat(self):
         #closes the current chat window that is minimized to the right
         close_button=Pattern(self._images.get_chat_window("expand_close")).targetOffset(11, 4)

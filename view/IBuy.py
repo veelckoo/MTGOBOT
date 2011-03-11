@@ -55,7 +55,7 @@ class IBuy(ITrade.ITrade):
         pack_names_images = self._images.get_packs_text(phase="preconfirm")
         #this will hold all the product objects that have been taken
         packs_taken = []
-        number_list = self._images.get_number(number=None, category="trade", subcategory="preconfirm")
+        number_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
         
         #this variable is used as an indicator whether the while loop should keep iterating
         found = True
@@ -139,7 +139,7 @@ class IBuy(ITrade.ITrade):
         pack_images = self._images.get_packs_text(phase="preconfirm")
         pack_image_keys = self._images.get_pack_keys()
         
-        numbers_list = self._images.get_number(category = "trade", subcategory = "preconfirm")
+        numbers_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
         
         #will hold the name of all products found
         products_found = []
@@ -191,9 +191,10 @@ class IBuy(ITrade.ITrade):
         if isinstance(confirm_button, Match):
             #keeps record of products found and their amount so far
             receiving_products_found = []
-            pack_names_keys = self._images.get_pack_keys()
-            pack_names = self._images.get_packs_text(phase="confirm")
-            numbers = self._images.get_number(number=None, category="trade", subcategory="confirm")
+            product_names_list = self._images.get_pack_keys()
+            product_names_list.extend(self._images.get_card_keys())
+            
+            numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
             #confirm products receiving
             #set the regions of a single product and and the amount slow
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
@@ -211,9 +212,18 @@ class IBuy(ITrade.ITrade):
                 print("while loop run")
                 hover(Location(receiving_number_region.getX(), receiving_number_region.getY()))
                 found=False
-                for product_abbr in pack_names_keys:
+                for product_abbr in product_names_list:
                     print("looking for " + str(product_abbr))
-                    if receiving_name_region.exists(Pattern(pack_names[product_abbr]).similar(0.8)):
+                    
+                    try:
+                        product = self._images.get_packs_text(phase="confirm", packname=product_abbr)
+                    except KeyError:
+                        try:
+                            product = self._images.get_card_text(phase="confirm", packname=product_abbr)
+                        except KeyError:
+                            continue
+                    
+                    if receiving_name_region.exists(Pattern(product).similar(0.8)):
                         print("confirmation window: "+product_abbr+" found")
                         
                         #if still at 0 after for loop, error raised
@@ -229,9 +239,8 @@ class IBuy(ITrade.ITrade):
                                 #packs are listed in Magic in the same sequence they are listed in the list of pack keys,
                                 #if a pack is found, all packs including it and before, are removed from the list of packs
                                 #to search
-                                pack_index = pack_names_keys.index(product_abbr) + 1
-                                pack_names_keys = pack_names_keys[pack_index:]
-                                
+                                product_index = product_names_list.index(product_abbr) + 1
+                                product_names_list = product_names_list[product_index:]
                                 break
                             
                         product_obj = Product.Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
@@ -261,7 +270,7 @@ class IBuy(ITrade.ITrade):
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if giving_name_region.exists(ticket_text_image):
-                expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", subcategory="confirm")).similar(0.7)
+                expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", phase="confirm")).similar(0.7)
                 if giving_number_region.exists(expected_number_image):
                     print("event ticket number found")
                     

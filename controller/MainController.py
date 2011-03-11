@@ -80,6 +80,8 @@ class MainController(object):
                 #open a session to record data to
                 session = Session.Session()
                 
+                #if done too quickly, the customers name isn't in place yet
+                wait(2)
                 customer_name = self.Itrade.get_customer_name()
                 
                 #enter selling mode
@@ -93,6 +95,7 @@ class MainController(object):
                         receipt = {"sold":{}, "bought":{}}
                         for product in products_sold:
                             receipt["sold"][product["name"]] = product["quantity"]
+                        receipt["customer"] = customer_name
                     
                 #enter buying mode
                 elif self.get_mode() == "buy":

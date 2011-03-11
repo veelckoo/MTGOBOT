@@ -16,29 +16,45 @@ class ITrade(Interface.Interface):
     def start_wait(self, type = "incoming_request"):
         #wait for whatever is passed in type parameter to show up
         #usually this will be used to wait for trade request
-        self.app_region.wait(self._images.get_trade(type), FOREVER)
+        self.app_region.wait(Pattern(self._images.get_trade(type)).similar(0.9), FOREVER)
         return True
+        
+    def cancel_trade(self):
+        #if trade has alreaady been canceled, then click ok, otherwise cancel the trade
+        cancel_button = self.app_region.exists(self._images.get_trade("cancel_button"))
+        if cancel_button:
+            self._slow_click(loc=cancel_button.getTarget())
+        else:
+            cancel_button = self.app_region.exists(self._images.get_trade(phase="confirm", filename="cancel_button"))
+            if cancel_button:
+                self._slow_click(loc=cancel_button.getTarget())
+        yes_button = self.app_region.exists(self._images.get_trade("yes_button"), 5)
+        if yes_button:
+            self._slow_click(loc=yes_button.getTarget())
+        ok_button = self.app_region.wait(self._images.get_ok_button(), 5)
+        if ok_button:
+            print("looking for ok")
+            self._slow_click(loc=ok_button.getTarget())
+                
     def get_customer_name(self):
         #will get customer name by clicking on chat area, and copying message
         #then will edit string down
-        confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"))
-        click(Location(confirm_button.x+600, confirm_button.y))
+        confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"), 120)
+        click(Location(confirm_button.x+600, confirm_button.y+556))
         type("c", KEY_CTRL)
         #copy test to variable "msg"
-        msg = Env.getClipboard()
-        if " PM " in msg:
-            msg_split = msg.split(" PM ", 1)
+        clipboard = Env.getClipboard()
+        #smiley faces [sS] are appended to usernames who are on your buddy list, remove them
+        if "[sS]" in clipboard:
+            copied_wo_emote = clipboard.split("[sS]")[0]
+            return copied_wo_emote.strip()
         else:
-            msg_split = msg.split(" AM ", 1)
-            
-        customer_name = msg_split[1].split(" accepts trade invitation", 0)
-        
-        return customer_name
+            return clipboard.strip()
         
     def accept_trade(self):
         #click on the accept button for a trade
         print("accept_trade")
-        request_loc = self.app_region.exists(self._images.get_trade("accept_request"))
+        request_loc = self.app_region.exists(self._images.get_trade("yes_button"))
         print("453")
         if isinstance(request_loc, Match):
             print("455")

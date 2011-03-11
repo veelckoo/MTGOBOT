@@ -34,7 +34,7 @@ I have screencapture all the images while the Magic Online App was in it's defau
 You should already be logged in to Magic Online.  As soon as you are logged in, just start the bot and it will respond to a trade request.
 For testing purposes I have have turned off signin feature.  This is so the user doesn't need to exit Magic Online everytime they have to restart the bot.
 
-After a successful transaction, the bot will open Notepad and write the transaction.  
+After a successful transaction, the bot will write to the /transaction_records/transactions.txt file.  It will enter in information on the transaction like what products are sold/bought, and the username of the customer.  
 
 I have created a convenient start.bat for those who are not especially experienced in programming.  This file will start the Sikuli application, and all you have to do to start the application is click "Run".
 

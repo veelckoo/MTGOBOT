@@ -2,3 +2,5 @@ mode: bought  mode: sold  ROE:1
 mode: bought  mode: sold  WWK:1 MBS:1 
 mode: bought  mode: sold  SOM:3 MBS:2 
 mode: bought  mode: sold  WWK:2 MBS:1 ZEN:2 
+mode: bought  WWK:1 ME4:3 SOM:3 MBS:4 ROE:3 customer: youngcara99 mode: sold  
+mode: bought  mode: sold  ME4:2 MBS:5 ZEN:2 ROE:1 
