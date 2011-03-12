@@ -36,7 +36,7 @@ class ImagesModel(object):
             filepath += str(phase) + "/"
         filepath += "number_" + str(number) + ".png"
         return filepath
-    def get_all_numbers_as_list(self, category, phase=None):
+    def get_all_numbers_as_dict(self, category, phase=None):
         numbers_list = dict((num, self.get_number(number=num, category=category, phase=phase)) for num in range(75) if num is not 0)
         return numbers_list  
           
@@ -69,7 +69,7 @@ class ImagesModel(object):
             return self.__cards
     
     #card images
-    __cards_text = {"M11": {"Primeval Titan":""}, 
+    __card_names_list = {"M11": {"Primeval Titan":""}, 
                     "ME4": {},
                     "MBS": {"Tezzeret, Agent of Bolas": ""},
                     "ROE": {"Gideon Jura": ""},
@@ -77,14 +77,22 @@ class ImagesModel(object):
                     "WWK": {"Jace, the Mind Sculptor": ""},  
                     "ZEN": {"":""}}
     def get_card_text(self, cardname, phase=None):
-        filepath = "../Images/product/cards/text/"
-        if phase == "confirm":
-            filepath += "confirm/"
-        filepath += str(cardname)
-        return filepath
-    def get_card_images(self, card, set):
-        filepath = "../Images/product/cards/set/" + set
-        return filepath
+        if not cardname in self.__card_names_list:
+            raise KeyError("Card name not found in cards_names_list")
+            return None
+        else:
+            filepath = "../Images/product/cards/text/"
+            if phase == "confirm":
+                filepath += "confirm/"
+            filepath += str(cardname) + ".png"
+            return filepath
+    def get_card_images(self, cardname, set):
+        if not cardname in self.__card_names_list:
+            raise KeyError("Card name not found in cards_names_list")
+            return None
+        else:
+            filepath = "../Images/product/cards/set/" + set + ".png"
+            return filepath
     
     __card_names_list = ["Primeval Titan", "Tezzeret, Agent of Bolas", "Gideon Jura", "Venser, the Sojourner", "Jace, the Mind Sculptor"]
     def get_card_keys(self):
@@ -92,32 +100,35 @@ class ImagesModel(object):
     
     #stores the images of each pack
     #this is a list of all packs to buy and sell
-    __packs_name_list = ["M11", "ME4", "MBS", "ROE", "SOM", "WWK", "ZEN"]
+    __pack_names_list = ["M11", "ME4", "MBS", "ROE", "SOM", "WWK", "ZEN"]
     
-    __packs_images = {"M11":"../Images/product/packs/Magic2011.png", "M10":"../Images/product/packs/Magic2010.png", "10E":"../Images/product/packs/UrzasLegacy.png", "9ED":"../Images/product/packs/Magic9.png", "8ED":"../Images/product/packs/Magic8.png", "7ED":"../Images/product/packs/Magic7.png", "MBS": "../Images/product/packs/Besieged.png", "SOM":"../Images/product/packs/Scars.png", "ROE":"../Images/product/packs/RiseEldrazi.png", "WWK":"../Images/product/packs/Worldwake.png", "ZEN":"../Images/product/packs/Zendikar.png","UZS":"../Images/product/packs/UrzasSaga.png", "UZL":"../Images/product/packs/UrzasLegacy.png", "ARB":"../Images/product/packs/AlaraReborn.png", "CSP":"../Images/product/packs/Coldsnap.png", "CON":"../Images/product/packs/Conflux.png", "DIS":"../Images/product/packs/Dissension.png", "EXO":"../Images/product/packs/Exodus.png", "FUT":"../Images/product/packs/Future.png", "CHK":"../Images/product/packs/KamigawaChampions.png", "LEG":"../Images/product/packs/Legions.png", "LRW":"../Images/product/packs/Lorwyn.png", "MOR":"../Images/product/packs/Morningtide.png", "PLC":"../Images/product/packs/PlanarChaos.png", "ALA":"../Images/product/packs/ShardsAlara.png", "STH":"../Images/product/packs/Stronghold.png", "WTH":"../Images/product/packs/Weatherlight.png", "ME4":"../Images/product/packs/Masters4.png", "ME3":"../Images/product/packs/Masters3.png", "ME2":"../Images/product/packs/Masters2.png", "ME1":"../Images/product/packs/Masters1.png", "ALB":"../Images/product/packs/AlaraBlock.png"},
-    __packs_text = {"preconfirm": {"M11":"../Images/product/packs/text/Magic2011.png", "M10":"../Images/product/packs/text/Magic2010.png", "10E":"../Images/product/packs/text/UrzasLegacy.png", "9ED":"../Images/product/packs/text/Magic9.png", "8ED":"../Images/product/packs/text/Magic8.png", "7ED":"../Images/product/packs/text/Magic7.png","MBS": "../Images/product/packs/text/Besieged.png", "SOM":"../Images/product/packs/text/Scars.png", "ZEN":"../Images/product/packs/text/Zendikar.png", "WWK":"../Images/product/packs/text/Worldwake.png", "ROE":"../Images/product/packs/text/RiseEldrazi.png", "UZS":"../Images/product/packs/text/UrzasSaga.png", "UZL":"../Images/product/packs/text/UrzasLegacy.png", "ARB":"../Images/product/packs/text/AlaraReborn.png", "CSP":"../Images/product/packs/text/Coldsnap.png", "CON":"../Images/product/packs/text/Conflux.png", "DIS":"../Images/product/packs/text/Dissension.png", "EXO":"../Images/product/packs/text/Exodus.png", "FUT":"../Images/product/packs/text/Future.png", "CHK":"../Images/product/packs/text/KamigawaChampions.png", "LEG":"../Images/product/packs/text/Legions.png", "LRW":"../Images/product/packs/text/Lorwyn.png", "MOR":"../Images/product/packs/text/Morningtide.png", "PLC":"../Images/product/packs/text/PlanarChaos.png", "ALA":"../Images/product/packs/text/ShardsAlara.png", "STH":"../Images/product/packs/text/Stronghold.png", "WTH":"../Images/product/packs/text/Weatherlight.png", "ME4":"../Images/product/packs/text/Masters4.png", "ME3":"../Images/product/packs/text/Masters3.png", "ME2":"../Images/product/packs/text/Masters2.png", "ME1":"../Images/product/packs/text/Masters1.png", "ALB":"../Images/product/packs/text/AlaraBlock.png"},
-                    "confirm":{"M11":"../Images/product/packs/text/confirm/Magic2011.png", "ME4":"../Images/product/packs/text/confirm/Masters4.png", "ROE":"../Images/product/packs/text/confirm/RiseEldrazi.png", "MBS": "../Images/product/packs/text/confirm/Besieged.png", "SOM":"../Images/product/packs/text/confirm/Scars.png", "ZEN":"../Images/product/packs/text/confirm/Zendikar.png", "WWK":"../Images/product/packs/text/confirm/Worldwake.png"}}
     def get_pack_keys(self):
-        return self.__packs_name_list
-    def get_packs_text(self, phase, packname=None):
-        if phase == "preconfirm":
-            if packname:
-                return self.__packs_text["preconfirm"][packname]
-            else:
-                return self.__packs_text["preconfirm"]
-        elif phase == "confirm":
-            if packname:
-                return self.__packs_text["confirm"][packname]
-            else:
-                return self.__packs_text["confirm"]
-        else:
-            return None
-    def get_packs_images(self, packname=None):
-        if packname :
-            return self.__packs_images[packname]
-        else:
-            return self.__packs_images
+        return self.__pack_names_list
     
+    def get_pack_text(self, phase, packname):
+        if not packname in self.__pack_names_list:
+            raise KeyError("Pack name not found in packs_names_list")
+            return None
+        else:
+            filepath = "../Images/product/packs/text/" + phase + "/" + packname + ".png"
+            return filepath
+
+    def get_all_pack_text_as_dict(self, phase):
+        packs_dict = dict((abbr, self.get_packs_text(phase=phase, packname=abbr)) for abbr in self.__pack_names_list)
+        return packs_dict
+    
+    def get_pack_image(self, packname):
+        if not packname in self.__pack_names_list:
+            raise KeyError("Pack name not found in packs_names_list")
+            return None
+        else:
+            filepath = "../Images/product/packs/" + packname + ".png"
+            return filepath
+        
+    def get_all_pack_image_as_dict(self):
+        packs_dict = dict((abbr, self.get_packs_image(abbr)) for abbr in self.__pack_names_list)
+        return packs_dict
+        
     #stores image of login screen
     __login = {'password_field': "../Images/password_field.png" , 'login_success': "../Images/login_success.png" , 'login_fail': "../Images/login_fail.png" , 'login_button': "../Images/login_button.png" }
     def get_login(self, filename):

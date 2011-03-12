@@ -7,3 +7,4 @@ from ImagesModel import *
 from Product import *
 from Session import *
 from DataStorage import *
+from CustomerModel import *

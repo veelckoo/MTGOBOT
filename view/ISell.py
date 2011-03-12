@@ -48,9 +48,10 @@ class ISell(ITrade.ITrade):
         #searches a certain area for any image in a dictionary
 
         #combine all cards and packs for sale into a list
-        product_names_list = self._images.get_pack_keys()
+        pack_names_list = self._images.get_pack_keys()
+        product_names_list = pack_names_list[:]
         product_names_list.extend(self._images.get_card_keys())
-        numbers_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+        numbers_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
 
         #if area searched contains a full sized scroll bar, then scroll down
         #variable to hold last mouse position for the scrollbar movement code
@@ -75,18 +76,15 @@ class ISell(ITrade.ITrade):
         while found:
             found = None
             for product_abbr in product_names_list:
-
                 #if the product_abbr is not a pack name, it must be a card name, if not then skip the product
                 try:
-                    product = self._images.get_packs_text(phase="preconfirm", packname=product_abbr)
+                    product = self._images.get_pack_text(phase="preconfirm", packname=product_abbr)
                 except KeyError:
                     try:
                         product = self._images.get_card_text(phase="preconfirm", cardname=product_abbr)
                     except KeyError:
                         continue
-
                 if scan_region.exists(Pattern(product).similar(0.9)):
-                    print(str(product_abbr) + " found!")
                     found = True
 
                     for key in range(len(numbers_list)):
@@ -95,7 +93,6 @@ class ISell(ITrade.ITrade):
                         
                         searchPattern = Pattern(numbers_list[key]).similar(0.9)
                         if(scan_region.exists(searchPattern)):
-                            print(str(key) + " amount of packs")
                             amount = key
                             #for booster packs, there is a specific order in which they appear in the list,
                             #when a pack is found, remove all packs before and including that pack in the keys
@@ -126,7 +123,6 @@ class ISell(ITrade.ITrade):
         #this takes all the products as a parameter and returns the number of tickets that should be taken
         running_total = 0
         for product in products_dict:
-            print("product quantity: " + str(product["quantity"]) + " sellprice: " + str(product["sell"]))
             running_total += (product["quantity"]) * (product["sell"])
         return running_total
     
@@ -139,10 +135,8 @@ class ISell(ITrade.ITrade):
         location_cache["take_10_tickets"] = None
         location_cache["take_4_tickets"] = None
         location_cache["take_1_tickets"] = None
-        print("total tickets to take " + str(number))
         taken = 0
         while number - taken > 0:
-            print("tickets taken so far: " + str(taken))
             if number - taken >=10:
                 click_result = self.click_tickets(take=10, taken=taken, cache=location_cache)
             elif number - taken < 10 and number - taken >= 4:
@@ -168,13 +162,11 @@ class ISell(ITrade.ITrade):
         
         #THIS METHOD IS IN NEED OF HEAVY OPTIMIZATION
         
-        print("click_tickets for" + str(take))
         ticket_location = self.app_region.exists(self._images.get_ticket())
         if ticket_location:
             #first if else deals with caching ticket location if necessary
             if cache["ticket"] is None:
                 if take == 1:
-                    print("here at 180")
                     doubleClick(cache["ticket"])
                     taken += take
                     return taken
@@ -187,7 +179,6 @@ class ISell(ITrade.ITrade):
                 if take == 1:
                     doubleClick(cache["ticket"])
                     taken += take
-                    print(str(taken) + " at line 192")
                     return taken
                 click_check = self._slow_click(loc=cache["ticket"], button="Right")
                 if not click_check:
@@ -216,7 +207,7 @@ class ISell(ITrade.ITrade):
 
     def preconfirm_scan_sale(self, products_giving):
         """takes the total number of products taken by customer and checks to see if the correct amount of tickets are in the taking window"""
-        numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+        numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
         ticket = self._images.get_ticket_text()
         
@@ -245,10 +236,8 @@ class ISell(ITrade.ITrade):
 
         if tickets_found >= expected_total:
             return True
-            print("Pre confirm scan found %i tickets and expected %i tickets" % (tickets_found, expected_total))
         else:
             return False
-            print("Total tickets found and expected tickets don't match.  Tickets found:"+str(tickets_found)+" and Tickets expected:"+str(expected_total))
   
     def confirmation_scan(self, type=None):
         #does a scan depending on which type is requested.  Each pass should scan the window differently
@@ -261,7 +250,9 @@ class ISell(ITrade.ITrade):
             #keeps record of products found and their amount so far
             giving_products_found = []
             pack_names_keys = self._images.get_pack_keys()
-            numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+            product_names_list = pack_names_keys[:]
+            product_names_list.extend(self._images.get_card_keys())
+            numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
             #confirm products receiving
             #set the regions of a single product and and the amount slow
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
@@ -283,7 +274,7 @@ class ISell(ITrade.ITrade):
                 for product_abbr in pack_names_keys:
                     
                     try:
-                        product = self._images.get_packs_text(phase="confirm", packname=product_abbr)
+                        product = self._images.get_pack_text(phase="confirm", packname=product_abbr)
                     except KeyError:
                         try:
                             product = self._images.get_card_text(phase="confirm", cardname=product_abbr)
@@ -372,7 +363,6 @@ class ISell(ITrade.ITrade):
         
         take_result = self.take_ticket(number_of_tickets)
         
-        print("finished at 370")
         #if trade was canceled or take tickets failed
         if not take_result:
             self.cancel_trade()
@@ -381,7 +371,6 @@ class ISell(ITrade.ITrade):
         
         preconfirm = self.preconfirm_scan_sale(products_giving=products_giving)
         
-        print("finished at 379")
         #if trade was canceled or preconfirm failed
         if not preconfirm:
             self.cancel_trade()

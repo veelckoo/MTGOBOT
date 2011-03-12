@@ -49,10 +49,10 @@ class IBuy(ITrade.ITrade):
         
         #a dict that holds images of the names of all packs
         pack_names_keys = self._images.get_pack_keys()
-        pack_names_images = self._images.get_packs_text(phase="preconfirm")
+        pack_names_images = self._images.get_pack_text(phase="preconfirm")
         #this will hold all the product objects that have been taken
         packs_taken = []
-        number_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
         #this variable is used as an indicator whether the while loop should keep iterating
         found = True
@@ -127,10 +127,10 @@ class IBuy(ITrade.ITrade):
         giving_name_region = Region(self.giving_window_region.getX()+35, self.giving_window_region.getY()+43, 197, 17)
         giving_number_region = Region(self.giving_window_region.getX()+3, self.giving_window_region.getY()+43, 30, 17)
         
-        pack_images = self._images.get_packs_text(phase="preconfirm")
+        pack_images = self._images.get_pack_text(phase="preconfirm")
         pack_image_keys = self._images.get_pack_keys()
         
-        numbers_list = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+        numbers_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
         #will hold the name of all products found
         products_found = []
@@ -182,10 +182,11 @@ class IBuy(ITrade.ITrade):
         if isinstance(confirm_button, Match):
             #keeps record of products found and their amount so far
             receiving_products_found = []
-            product_names_list = self._images.get_pack_keys()
+            pack_names_keys = self._images.get_pack_keys()
+            product_names_list = pack_names_keys[:]
             product_names_list.extend(self._images.get_card_keys())
             
-            numbers = self._images.get_all_numbers_as_list(category="trade", phase="preconfirm")
+            numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
             #confirm products receiving
             #set the regions of a single product and and the amount slow
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
@@ -205,7 +206,7 @@ class IBuy(ITrade.ITrade):
                 for product_abbr in product_names_list:
                     
                     try:
-                        product = self._images.get_packs_text(phase="confirm", packname=product_abbr)
+                        product = self._images.get_pack_text(phase="confirm", packname=product_abbr)
                     except KeyError:
                         try:
                             product = self._images.get_card_text(phase="confirm", packname=product_abbr)
