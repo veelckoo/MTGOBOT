@@ -1,3 +1,8 @@
+Checkout what I am currently working on with this bot or other apps I'm building at 
+
+https://twitter.com/Darkray16
+
+
 This Magic Online Trading Bot was created  by Raymond Cheung.  I can be contacted at darkray16@yahoo.com .
 
 My username on Magic Online is darkray16 .  If you're online and see me on, send me a a challenge, I play all formats and would enjoy playing with a follow Github member.
