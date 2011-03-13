@@ -41,12 +41,39 @@ class ImagesModel(object):
         return numbers_list  
           
     #stores images for the classified window
-    __classified = {'posting': "../Images/posting_text_area.png", "submit_posting": "../Images/submit_posting_button.png", 'cancel_edit': "../Images/cancel_edit_button.png", 'submit_edit': "../Images/submit_edit_button.png", 'edit_posting': "../Images/edit_posting_button.png", "search_posts":"../Images/search_posts.png"}
+    __classified = {'posting': "../Images/posting_text_area.png", 
+                    "submit_posting": "../Images/submit_posting_button.png", 
+                    'cancel_edit': "../Images/cancel_edit_button.png", 
+                    'submit_edit': "../Images/submit_edit_button.png", 
+                    'edit_posting': "../Images/edit_posting_button.png", 
+                    "search_posts":"../Images/search_posts.png"}
+                    
     def get_classified(self, filename):
         return self.__classified[filename]
     
     #stores the screencaps for trade window
-    __trade = {"confirm":{"confirm_button":"../Images/trade/confirm_window/confirm_button_confirm.png", "confirm_cancel":"../Images/trade/confirm_window/confirm_cancel.png", "cancel_button":"../Images/trade/confirm_window/cancel_button.png"}, "canceled_trade": "canceled_trade.png", "sort_name": "../Images/trade/sort_name.png", "list_view_collection_window":"../Images/trade/list_view_button_collection_window.png", "thumbnail_view_collection_window":"../Images/trade/thumbnail_view_button_collection_window.png", "confirm_button":"../Images/trade/confirm_button.png", "cancel_button":"../Images/trade/cancel_button.png", "incoming_request": "../Images/incoming_request.png", "yes_button": "../Images/yes_button.png",  "turn_right": "../Images/turn_right.png", "turn_left": "../Images/turn_left.png", "version_menu":"../Images/trade/version_menu.png", "version_menu_regular":"../Images/trade/version_menu_regular.png", "version_menu_packs_tickets":"../Images/trade/version_menu_packs_tickets.png", "version_menu_premium":"../Images/trade/version_menu_premium.png", "giving_window":"../Images/trade/products_giving.png", "taking_window":"../Images/trade/products_taking.png", "scroll_bar_regular":"../Images/trade/scroll_bar_regular.png", "scroll_bar_mini":"../Images/trade/scroll_bar_mini.png"}
+    __trade = {"confirm":{"confirm_button":"../Images/trade/confirm_window/confirm_button_confirm.png", 
+                          "confirm_cancel":"../Images/trade/confirm_window/confirm_cancel.png", 
+                          "cancel_button":"../Images/trade/confirm_window/cancel_button.png"}, 
+               "canceled_trade": "canceled_trade.png", 
+               "sort_name": "../Images/trade/sort_name.png", 
+               "list_view_collection_window":"../Images/trade/list_view_button_collection_window.png", 
+               "thumbnail_view_collection_window":"../Images/trade/thumbnail_view_button_collection_window.png", 
+               "confirm_button":"../Images/trade/confirm_button.png", 
+               "cancel_button":"../Images/trade/cancel_button.png", 
+               "incoming_request": "../Images/incoming_request.png", 
+               "yes_button": "../Images/yes_button.png",  
+               "turn_right": "../Images/turn_right.png", 
+               "turn_left": "../Images/turn_left.png", 
+               "version_menu":"../Images/trade/version_menu.png", 
+               "version_menu_regular":"../Images/trade/version_menu_regular.png", 
+               "version_menu_packs_tickets":"../Images/trade/version_menu_packs_tickets.png", 
+               "version_menu_premium":"../Images/trade/version_menu_premium.png", 
+               "giving_window":"../Images/trade/products_giving.png", 
+               "taking_window":"../Images/trade/products_taking.png", 
+               "scroll_bar_regular":"../Images/trade/scroll_bar_regular.png", 
+               "scroll_bar_mini":"../Images/trade/scroll_bar_mini.png"}
+
     def get_trade(self, filename, phase=None):
         if phase == None:
             return self.__trade[filename]
@@ -54,7 +81,14 @@ class ImagesModel(object):
             return self.__trade[phase][filename]
             
     #stores the screencaps for chat window
-    __chat = {"minimize":"../Images/chat/minimize_button.png", "expand_close":"../Images/chat/expand_close_button.png", "type_area":"../Images/chat/type_area.png", "buddies": "../Images/buddies_tab.png", 'my_cart': "../Images/my_cart_tab.png", 'games': "../Images/games_tab.png", 'card': "../Images/card_tab.png", 'text':{"done":"../Images/chat/text/done.png"}}
+    __chat = {"minimize":"../Images/chat/minimize_button.png", 
+              "expand_close":"../Images/chat/expand_close_button.png", 
+              "type_area":"../Images/chat/type_area.png", 
+              "buddies": "../Images/buddies_tab.png", 
+              'my_cart': "../Images/my_cart_tab.png", 
+              'games': "../Images/games_tab.png", 
+              'card': "../Images/card_tab.png", 
+              'text':{"done":"../Images/chat/text/done.png"}}
     def get_chat_text(self, filename):
         return self.__chat['text'][filename]
     def get_chat_window(self, filename):
@@ -130,11 +164,19 @@ class ImagesModel(object):
         return packs_dict
         
     #stores image of login screen
-    __login = {'password_field': "../Images/password_field.png" , 'login_success': "../Images/login_success.png" , 'login_fail': "../Images/login_fail.png" , 'login_button': "../Images/login_button.png" }
+    __login = {'password_field': "../Images/password_field.png" , 
+               'login_success': "../Images/login_success.png" , 
+               'login_fail': "../Images/login_fail.png" , 
+               'login_button': "../Images/login_button.png" }
     def get_login(self, filename):
         return self.__login[filename]
     
     #stores image of menu options
-    __menu = {'community': "../Images/community_button.png", 'menu': "../Images/menu_button.png", 'collection': "../Images/collection_button.png", 'home': "../Images/home_button.png", 'marketplace': "../Images/marketplace_button.png", 'classified': "../Images/classified_button.png"}
+    __menu = {'community': "../Images/community_button.png", 
+              'menu': "../Images/menu_button.png", 
+              'collection': "../Images/collection_button.png", 
+              'home': "../Images/home_button.png", 
+              'marketplace': "../Images/marketplace_button.png", 
+              'classified': "../Images/classified_button.png"}
     def get_menu(self, filename):
         return self.__menu[filename]

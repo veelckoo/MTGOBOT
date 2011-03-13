@@ -17,12 +17,12 @@ class CustomerModel(object):
             except:
                 print("Had trouble accessing/creating unkown.txt")
                 raise IOError("Fatal exception trying to access or create customer records file for " + str(customer_name))
-                
-    def read_credits(self):
+    
+    def read_row(self):
         #read out the number of credits customer has
         pass
     
-    def write_credits(self, amount):
+    def write_row(self, string):
         #write out the number of credits customer has
         
         #copy file contents first, file will be overwritten
@@ -31,4 +31,3 @@ class CustomerModel(object):
         
         pass
         
-    
