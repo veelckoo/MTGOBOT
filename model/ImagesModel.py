@@ -127,18 +127,20 @@ class ImagesModel(object):
             return filepath
     def get_card_text(self, phase, cardname):
         try:
-            open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname + ".png", "r")
+            card = open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname + ".png", "r")
         except IOError:
             raise KeyError(cardname + " not found")
         else:
+            card.close()
             filepath = "../Images/product/cards/text/" + phase + "/" + cardname + ".png"
             return filepath
     def get_card_image(self, set, cardname):
         try:
-            open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname + ".png", "r")
+            card = open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname + ".png", "r")
         except IOError:
             raise KeyError(cardname + " not found")
         else:
+            card.close()
             filepath = "../Images/product/cards/img/" + phase + "/" + cardname + ".png"
             return filepath
     
@@ -155,10 +157,11 @@ class ImagesModel(object):
     
     def get_pack_text(self, phase, packname):
         try:
-            open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname + ".png", "r")
+            pack = open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname + ".png", "r")
         except IOError:
             raise KeyError(packname + " not found")
         else:
+            pack.close()
             filepath = "../Images/product/packs/text/" + phase + "/" + packname + ".png"
             return filepath
 
@@ -168,10 +171,11 @@ class ImagesModel(object):
     
     def get_pack_image(self, packname):
         try:
-            open(path_to_bot + "/Images/product/packs/img/" + packname + ".png", "r")
+            pack = open(path_to_bot + "/Images/product/packs/img/" + packname + ".png", "r")
         except:
             raise KeyError(packname + " not found")
         else:
+            pack.close()
             filepath = "../Images/product/packs/" + packname + ".png"
             return filepath
         
