@@ -70,9 +70,12 @@
 <h2>test.sikuli\test.sikuli</h2> <a href="test.sikuli\test.zip">(Download this script)</a>
 </div>
 <pre class="sikuli-code">
-img = Pattern(<img src="../Images/product/packs/text/preconfirm/M11.png" />)
+img = Pattern(<img src="../Images/trade/confirm_button.png" />)
 
 match = <span class="skw">find</span>(img)
+loc = Location(match.x, match.y)
+
+hover(loc)
 </pre>
 </body>
 </html>

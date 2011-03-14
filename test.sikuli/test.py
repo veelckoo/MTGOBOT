@@ -1,3 +1,6 @@
-img = Pattern("../Images/product/packs/text/preconfirm/M11.png")
+img = Pattern("../Images/trade/confirm_button.png")
 
 match = find(img)
+loc = Location(match.x, match.y)
+
+hover(loc)

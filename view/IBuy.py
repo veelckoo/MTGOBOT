@@ -1,11 +1,16 @@
 from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
+exec(open(path_to_bot + "ini.py", "rb").read())
+
 import sys
-sys.path.append(path_to_bot + "view")
+sys.path.append(path_to_bot + "model/pricelist")
 import PackPricesDAL
 import CardPricesDAL
+
+sys.path.append(path_to_bot + "model")
 import Product
+
 
 sys.path.append(path_to_bot + "view")
 import ITrade
@@ -22,7 +27,7 @@ class IBuy(ITrade.ITrade):
         #this will keep taking the product until there are no more of that product
         pass
 
-    def take_single_pack(self, product_loc, quantity):
+    def take_product(self, product_loc, quantity):
         #this will take all the packs from the given location
         #right click on the product to open context menu
         self._slow_click(loc=product_loc, button="Right")
@@ -68,7 +73,7 @@ class IBuy(ITrade.ITrade):
                             continue
                         if self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9)):
                             amount = num
-                            self.take_single_pack(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
+                            self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
                             break
 
                     pack_abbr_index = pack_names_keys.index(pack_abbr)+1
@@ -86,12 +91,45 @@ class IBuy(ITrade.ITrade):
         
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
-        return tickets_to_give
+        else:
+            return tickets_to_give
     
-    def take_cards(self):
+    def take_all_cards(self):
         pass
         
         return 0
+    
+    def take_specific_cards(self):
+        confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"))
+        searchfield = Location(confirm_button.x-220, confirm_button.y-28)
+        searchbutton = Location(confirm_button.x-255, confirm_button.y-28)
+        
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
+        
+        for card in self.__card_prices.buy:
+            click(searchfield)
+            self._slow_click(loc=searchbutton)
+            wait(2)
+            cardsearch = self.topmost_product_name_area.exists(Pattern(self._images.get_card_text(phase="preconfirm", cardname=card)).similar(0.9))
+            if cardsearch:
+                for num in range(len(number_list)):
+                    if num == 0:
+                        continue
+                    numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9))
+                    if numbersearch:
+                        amount = num
+                        self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
+                        break
+                card_obj = Product.Product(name=card, buy=self.__card_prices.get_buy_price(card), sell=self.__card_prices.get_sell_price(card), quantity=amount)
+                cards_taken.append(card_obj)
+        
+        for card in cards_taken:
+            tickets_to_give += card["quantity"] * card["buy"]
+        
+        if self.app_region.exists(self._images.get_trade("canceled_trade")):
+            return False
+        else:
+            return tickets_to_give
     
     def take_products(self):
         #confirm button will be used for relative positioning the regions for products scanning
@@ -111,7 +149,12 @@ class IBuy(ITrade.ITrade):
             return False
         else:
             tickets_to_give += tickets_for_packs
-        tickets_for_cards = self.take_cards()
+
+        if settings["CARD_BUYING"] == "all":
+            tickets_for_cards = self.take_all_cards()
+        elif settings["CARD_BUYING"] == "search":
+            tickets_for_cards = self.take_specific_cards()
+
         #if customer cancels trade
         if tickets_for_cards is False:
             return False

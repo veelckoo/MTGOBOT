@@ -80,7 +80,7 @@ class MainController(object):
                 session = Session.Session()
                 
                 #if done too quickly, the customers name isn't in place yet
-                wait(3)
+                wait(4)
                 customer_name = self.Itrade.get_customer_name()
                 
                 #enter selling mode

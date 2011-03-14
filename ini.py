@@ -1,7 +1,27 @@
 from sikuli.Sikuli import *
 
 #this object will hold all global settings for the application
-settings = {"ERRORHANDLERAPP":"Notepad", "LOGIN_WAIT":45, "USERNAME": "yourmagiconlineusername", "PASSWORD":"yourpasswordhere", "NETWORK":False, "DEFAULTMODE":"sell"}
+#ERRORHANDLERAPP = How the app will output errors, possible values: Notepad
+
+#USERNAME = Your Magic Online username
+
+#PASSWORD = Your Magic Online password
+
+#NETWORK = Whether you have other bots that you wish this bot to interact with for chores like farming and juggling products
+
+#DEFAULTMODE = the mode that the bot will automatically go into when a trade is opened, possible values: buy, sell
+
+#CARD_BUYING = Whether the bot will search for specific cards in searchfield or just skim through the collection
+#by category.  Search is better if your card buy list is small(less than a dozen or so), all is better if there
+#are many cards listed in the card_buy pricelist, meaning there are many cards you would buy
+
+settings = {"ERRORHANDLERAPP":"Notepad", 
+            "LOGIN_WAIT":45, 
+            "USERNAME": "yourmagiconlineusername", 
+            "PASSWORD":"yourpasswordhere", 
+            "NETWORK":False, 
+            "DEFAULTMODE":"sell"
+            "CARD_BUYING":"search"}
 
 #default is 1
 Settings.MoveMouseDelay = 0.2

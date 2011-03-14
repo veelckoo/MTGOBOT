@@ -4,9 +4,11 @@ from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 import sys
-sys.path.append(path_to_bot + "model")
+sys.path.append(path_to_bot + "model/pricelist")
 import PackPricesDAL
 import CardPricesDAL
+
+sys.path.append(path_to_bot + "model")
 import Product
 
 sys.path.append(path_to_bot + "view")
@@ -233,7 +235,7 @@ class ISell(ITrade.ITrade):
                     if scan_region_number.exists(number_image):
                         tickets_found = number
                         break
-
+        print("Expected tickets: " + str(expected_total) + " and tickets found: " + str(tickets_found))
         if tickets_found >= expected_total:
             return True
         else:

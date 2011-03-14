@@ -1,3 +1,8 @@
+from sikuli.Sikuli import *
+
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
+
 class ImagesModel(object):
     #stores the all images to be used by bot into tuples
     #used as a library object, primarily by the interface object
@@ -120,12 +125,21 @@ class ImagesModel(object):
                 filepath += "confirm/"
             filepath += str(cardname) + ".png"
             return filepath
-    def get_card_images(self, cardname, set):
-        if not cardname in self.__card_names_list:
-            raise KeyError("Card name not found in cards_names_list")
-            return None
+    def get_card_text(self, phase, cardname):
+        try:
+            open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname + ".png", "r")
+        except IOError:
+            raise KeyError(cardname + " not found")
         else:
-            filepath = "../Images/product/cards/set/" + set + ".png"
+            filepath = "../Images/product/cards/text/" + phase + "/" + cardname + ".png"
+            return filepath
+    def get_card_image(self, set, cardname):
+        try:
+            open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname + ".png", "r")
+        except IOError:
+            raise KeyError(cardname + " not found")
+        else:
+            filepath = "../Images/product/cards/img/" + phase + "/" + cardname + ".png"
             return filepath
     
     __card_names_list = ["Primeval Titan", "Tezzeret, Agent of Bolas", "Gideon Jura", "Venser, the Sojourner", "Jace, the Mind Sculptor"]
@@ -140,9 +154,10 @@ class ImagesModel(object):
         return self.__pack_names_list
     
     def get_pack_text(self, phase, packname):
-        if not packname in self.__pack_names_list:
-            raise KeyError("Pack name not found in packs_names_list")
-            return None
+        try:
+            open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname + ".png", "r")
+        except IOError:
+            raise KeyError(packname + " not found")
         else:
             filepath = "../Images/product/packs/text/" + phase + "/" + packname + ".png"
             return filepath
@@ -152,9 +167,10 @@ class ImagesModel(object):
         return packs_dict
     
     def get_pack_image(self, packname):
-        if not packname in self.__pack_names_list:
-            raise KeyError("Pack name not found in packs_names_list")
-            return None
+        try:
+            open(path_to_bot + "/Images/product/packs/img/" + packname + ".png", "r")
+        except:
+            raise KeyError(packname + " not found")
         else:
             filepath = "../Images/product/packs/" + packname + ".png"
             return filepath
