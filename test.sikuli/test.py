@@ -1,4 +1,4 @@
-img = Pattern("../Images/trade/confirm_button.png")
+img = Pattern("../Images/trade/set/scroll_down.png")
 
 match = find(img)
 loc = Location(match.x, match.y)

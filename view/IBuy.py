@@ -38,7 +38,7 @@ class IBuy(ITrade.ITrade):
 
     def take_packs(self):
         #will take all packs found in the customers collection and in buy list
-        self.filter_product_search(filter="tickets_packs")
+        self.filter_product_version(version="tickets_packs")
         
         #we don't want to take tickets, just products
         hover(Location(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()))
@@ -100,16 +100,29 @@ class IBuy(ITrade.ITrade):
         else:
             return tickets_to_give
     
-    def take_all_cards(self):
-        pass
+    def take_bulk_cards(self):
+        #this will buy all rares, mythics, uncommons, and/or commons that the customer has available
+        tickets_to_give = 0
         
-        return 0
+        for filter, valid in bulkcardbuying.iteritems():
+            if valid is "yes":
+                self.filter_product_rarity(rarity=filter)
+                for setname, valid in bulkcardbuying["set"].iteritems():
+                    if valid is "yes":
+                        self.filter_product_set(set=setname)
+                        #sort cards alphabetically
+                        click(self.name_sort_button_location)
+                    product_name_region = Region(self.confirm_button.getX()-271, self.confirm_button.getY()+47, 159, 15)
+                    product_quantity_region = Region(self.confirm_button.getX()-113, self.confirm_button.getY()+47, 40, 15)
+                    
+                    
+        return tickets_to_give
     
     def take_specific_cards(self):
-        self.filter_product_search(filter="all_versions")
-        confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"))
-        searchfield = Location(confirm_button.x-220, confirm_button.y-28)
-        searchbutton = Location(confirm_button.x-255, confirm_button.y-28)
+        #this will search for specific cards on the buy list to buy
+        self.filter_product_version(version="all_versions")
+        searchfield = Location(self.confirm_button.x-220, self.confirm_button.y-28)
+        searchbutton = Location(self.confirm_button.x-255, self.confirm_button.y-28)
         cards_taken = []
         
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -117,8 +130,7 @@ class IBuy(ITrade.ITrade):
         for card in self.__card_prices.buy:
             print(str(card))
             click(searchfield)
-            type(card)
-            self._slow_click(loc=searchbutton)
+            type(card + Key.ENTER)
             wait(2)
             cardsearch = self.topmost_product_name_area.exists(Pattern(self._images.get_card_text(phase="preconfirm", cardname=card)).similar(0.9))
             if cardsearch:
@@ -147,15 +159,17 @@ class IBuy(ITrade.ITrade):
             return tickets_to_give
     
     def take_products(self):
-        #confirm button will be used for relative positioning the regions for products scanning
-        confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"), 30)
+        #confirm button will be used for relative positioning the regions for products scanning in preconfirm stage
+        self.confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"), 30)
         #find the position in the window where the topmost product would be located
         
-        self.topmost_product_name_area = Region(confirm_button.getX()-271, confirm_button.getY()+47, 159, 15)
-        self.topmost_product_quantity_area = Region(confirm_button.getX()-113, confirm_button.getY()+47, 40, 15)
+        self.topmost_product_name_area = Region(self.confirm_button.getX()-271, self.confirm_button.getY()+47, 159, 15)
+        self.topmost_product_quantity_area = Region(self.confirm_button.getX()-113, self.confirm_button.getY()+47, 40, 15)
+        self.top_most_product_set_area = Region(self.confirm_button.getX()+9, self.confirm_button.getY()+47, 63, 15)
         
-        name_sort_button_location = Location(confirm_button.getX()-231, confirm_button.getY()+23)
-        self._slow_click(loc=name_sort_button_location)
+        #sort button will be used for preconfirm stage
+        self.name_sort_button_location = Location(self.confirm_button.getX()-231, self.confirm_button.getY()+23)
+        self._slow_click(loc=self.name_sort_button_location)
         
         tickets_to_give = 0
         #DEBUG

@@ -361,7 +361,7 @@ class ISell(ITrade.ITrade):
             self.cancel_trade()
             return False
             
-        self.filter_product_search(filter="tickets_packs")
+        self.filter_product_version(version="tickets_packs")
         
         take_result = self.take_ticket(number_of_tickets)
         
