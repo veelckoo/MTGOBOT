@@ -23,14 +23,14 @@ class ProductPriceModel(object):
                break
             single_product = newline.split(" $")
             try:
-                int(single_product[1])
+                float(single_product[1])
             except ValueError:
                 sys.exit("A non-number found as a price for " + single_product[0] + " in in response to a " + pricelist + " request")
             product_name = str(single_product[0])
             
             #if there is no price next to the name of the product, then 
             try:
-                product_price = int(single_product[1])
+                product_price = float(single_product[1])
             except IndexError:
                 pass
             except ValueError:

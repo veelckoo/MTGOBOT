@@ -70,20 +70,20 @@ class ImagesModel(object):
                "yes_button": "../Images/yes_button.png",  
                "turn_right": "../Images/turn_right.png", 
                "turn_left": "../Images/turn_left.png", 
-               "version_menu":"../Images/trade/version_menu.png", 
-               "version_menu_regular":"../Images/trade/version_menu_regular.png", 
-               "version_menu_packs_tickets":"../Images/trade/version_menu_packs_tickets.png", 
-               "version_menu_premium":"../Images/trade/version_menu_premium.png", 
+               "filter":{"all_versions": "../Images/trade/filter/all_versions.png",
+                         "packs_tickets": "../Images/trade/filter/packs_tickets.png",
+                         "premium": "../Images/trade/filter/premium.png",
+                         "regular": "../Images/trade/filter/regular.png"},
                "giving_window":"../Images/trade/products_giving.png", 
                "taking_window":"../Images/trade/products_taking.png", 
                "scroll_bar_regular":"../Images/trade/scroll_bar_regular.png", 
                "scroll_bar_mini":"../Images/trade/scroll_bar_mini.png"}
 
-    def get_trade(self, filename, phase=None):
-        if phase == None:
+    def get_trade(self, filename, subsection=None):
+        if subsection == None:
             return self.__trade[filename]
         else:
-            return self.__trade[phase][filename]
+            return self.__trade[subsection][filename]
             
     #stores the screencaps for chat window
     __chat = {"minimize":"../Images/chat/minimize_button.png", 

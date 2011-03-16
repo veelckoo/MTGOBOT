@@ -20,7 +20,7 @@ settings = {"ERRORHANDLERAPP":"Notepad",
             "USERNAME": "yourmagiconlineusername", 
             "PASSWORD":"yourpasswordhere", 
             "NETWORK":False, 
-            "DEFAULTMODE":"sell"
+            "DEFAULTMODE":"buy",
             "CARD_BUYING":"search"}
 
 #default is 1

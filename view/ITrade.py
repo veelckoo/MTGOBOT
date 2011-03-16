@@ -26,7 +26,7 @@ class ITrade(Interface.Interface):
         if cancel_button:
             self._slow_click(loc=cancel_button.getTarget())
         else:
-            cancel_button = self.app_region.exists(self._images.get_trade(phase="confirm", filename="cancel_button"))
+            cancel_button = self.app_region.exists(self._images.get_trade(subsection="confirm", filename="cancel_button"))
             if cancel_button:
                 self._slow_click(loc=cancel_button.getTarget())
         yes_button = self.app_region.exists(self._images.get_trade("yes_button"), 5)
@@ -89,11 +89,18 @@ class ITrade(Interface.Interface):
             return True
         else:
             return False
-
+    def filter_product_search(self, filter):
+        #go to the product filter options and filter all product searches
+        #valid string values for filter argument: packs_tickets
+        confirm_button = self.app_region.exists(Pattern(self._images.get_trade("confirm_button")).similar(0.9))
+        version_menu_loc = Location(confirm_button.getX()+210, confirm_button.getY()-26)
+        self._slow_click(target=self._images.get_trade(subsection="filter", filename=filter))
+        
     def go_to_tickets_packs(self):
         #go to the tickets section
-        self._slow_click(target=self._images.get_trade("version_menu"))
-        self._slow_click(target=self._images.get_trade("version_menu_packs_tickets"))
+        confirm_button = self.app_region.exists(Pattern(self._images.get_trade("confirm_button")).similar(0.9))
+        version_menu_loc = Location(confirm_button.getX()+210, confirm_button.getY()-26)
+        self._slow_click(loc=self._images.get_trade("version_menu_packs_tickets"))
 
     def go_to_confirmation(self):
         confirm_button = self._images.get_trade(filename="confirm_button")

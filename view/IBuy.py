@@ -38,7 +38,7 @@ class IBuy(ITrade.ITrade):
 
     def take_packs(self):
         #will take all packs found in the customers collection and in buy list
-        self.go_to_tickets_packs()
+        self.filter_product_search(filter="tickets_packs")
         
         #we don't want to take tickets, just products
         hover(Location(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()))
@@ -54,7 +54,6 @@ class IBuy(ITrade.ITrade):
         
         #a dict that holds images of the names of all packs
         pack_names_keys = self._images.get_pack_keys()
-        pack_names_images = self._images.get_pack_text(phase="preconfirm")
         #this will hold all the product objects that have been taken
         packs_taken = []
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -65,7 +64,14 @@ class IBuy(ITrade.ITrade):
         while found:
             found = False
             for pack_abbr in pack_names_keys:
-                if self.topmost_product_name_area.exists(Pattern(pack_names_images[pack_abbr]).similar(0.8)):
+                try:
+                    pack_text_filepath = self._images.get_pack_text(phase="preconfirm", packname=pack_abbr)
+                except KeyError:
+                    try:
+                        pack_text_filepath = self._images.get_card_text(phase="preconfirm", cardname=pack_abbr)
+                    except KeyError:
+                        continue
+                if self.topmost_product_name_area.exists(Pattern(pack_text_filepath).similar(0.8)):
                     found = True
                     amount = 0
                     for num in range(len(number_list)):
@@ -100,28 +106,37 @@ class IBuy(ITrade.ITrade):
         return 0
     
     def take_specific_cards(self):
+        self.filter_product_search(filter="all_versions")
         confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"))
         searchfield = Location(confirm_button.x-220, confirm_button.y-28)
         searchbutton = Location(confirm_button.x-255, confirm_button.y-28)
+        cards_taken = []
         
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
         for card in self.__card_prices.buy:
+            print(str(card))
             click(searchfield)
+            type(card)
             self._slow_click(loc=searchbutton)
             wait(2)
             cardsearch = self.topmost_product_name_area.exists(Pattern(self._images.get_card_text(phase="preconfirm", cardname=card)).similar(0.9))
             if cardsearch:
+                print(card + " has been found!")
                 for num in range(len(number_list)):
                     if num == 0:
                         continue
                     numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9))
                     if numbersearch:
+                        print(str(num) + " = amount")
                         amount = num
                         self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
+                        wait(1)
                         break
                 card_obj = Product.Product(name=card, buy=self.__card_prices.get_buy_price(card), sell=self.__card_prices.get_sell_price(card), quantity=amount)
                 cards_taken.append(card_obj)
+        
+        tickets_to_give = 0
         
         for card in cards_taken:
             tickets_to_give += card["quantity"] * card["buy"]
@@ -143,12 +158,8 @@ class IBuy(ITrade.ITrade):
         self._slow_click(loc=name_sort_button_location)
         
         tickets_to_give = 0
-        tickets_for_packs = self.take_packs()
-        #if customer cancels trade
-        if tickets_for_packs is False:
-            return False
-        else:
-            tickets_to_give += tickets_for_packs
+        #DEBUG
+        #tickets_to_give += self.take_packs()
 
         if settings["CARD_BUYING"] == "all":
             tickets_for_cards = self.take_all_cards()
@@ -170,7 +181,6 @@ class IBuy(ITrade.ITrade):
         giving_name_region = Region(self.giving_window_region.getX()+35, self.giving_window_region.getY()+43, 197, 17)
         giving_number_region = Region(self.giving_window_region.getX()+3, self.giving_window_region.getY()+43, 30, 17)
         
-        pack_images = self._images.get_pack_text(phase="preconfirm")
         pack_image_keys = self._images.get_pack_keys()
         
         numbers_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -187,8 +197,15 @@ class IBuy(ITrade.ITrade):
             found = False
             
             for pack_abbr in pack_image_keys:
-            
-                if taking_name_region.exists(Pattern(pack_images[pack_abbr]).similar(0.9)):
+                try:
+                    product = self._images.get_pack_text(phase="preconfirm", packname=product_abbr)
+                except KeyError:
+                    try:
+                        product = self._images.get_card_text(phase="preconfirm", cardname=product_abbr)
+                    except KeyError:
+                        continue
+                
+                if taking_name_region.exists(Pattern(product).similar(0.9)):
                     found = True
                     products_found.append(pack_abbr)
                     
@@ -217,7 +234,7 @@ class IBuy(ITrade.ITrade):
     def confirmation_scan(self):
         """will return number of tickets taken for transaction recording"""
         #verify confirm window by checking for confirm cancel buttons, then set regions relative to those buttons
-        confirm_button = exists(self._images.get_trade(filename="confirm_button", phase="confirm"), 1200)
+        confirm_button = exists(self._images.get_trade(filename="confirm_button", subsection="confirm"), 1200)
         
         if not confirm_button:
             self._slow_click(loc=Pattern(self._images.get_trade["cancel_button"]))
@@ -342,14 +359,14 @@ class IBuy(ITrade.ITrade):
         
             if products_bought:
                 
-                self._slow_click(target=self._images.get_trade(phase="confirm", filename="confirm_button"))
+                self._slow_click(target=self._images.get_trade(subsection="confirm", filename="confirm_button"))
                 wait(Pattern(self._images.get_ok_button()), 600)
                 self._slow_click(target=self._images.get_ok_button())
             
                 return products_bought
                 
             else:
-                cancel_button = self.app_region.exists(self._images.get_trade(phase="confirm", filename="cancel_button"))
+                cancel_button = self.app_region.exists(self._images.get_trade(subsection="confirm", filename="cancel_button"))
                 if cancel_button:
                     self.slow_click(loc=cancel_button.getTarget())
                 self._slow_click(target=self._images.get_ok_button())

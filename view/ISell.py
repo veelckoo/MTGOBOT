@@ -246,7 +246,7 @@ class ISell(ITrade.ITrade):
         #to confirm that the correct
         
         #verify confirm window by checking for confirm cancel buttons, then set regions relative to those buttons
-        confirm_button = exists(self._images.get_trade(filename="confirm_button", phase="confirm"), 1200)
+        confirm_button = exists(self._images.get_trade(filename="confirm_button", subsection="confirm"), 1200)
         
         if isinstance(confirm_button, Match):
             #keeps record of products found and their amount so far
@@ -361,7 +361,7 @@ class ISell(ITrade.ITrade):
             self.cancel_trade()
             return False
             
-        self.go_to_tickets_packs()
+        self.filter_product_search(filter="tickets_packs")
         
         take_result = self.take_ticket(number_of_tickets)
         
@@ -394,14 +394,14 @@ class ISell(ITrade.ITrade):
         self.Ichat.close_current_chat()
         
         if products_sold:
-            self._slow_click(target=self._images.get_trade(phase="confirm", filename="confirm_button"))
+            self._slow_click(target=self._images.get_trade(subsection="confirm", filename="confirm_button"))
             wait(Pattern(self._images.get_ok_button()), 600)
             self._slow_click(target=self._images.get_ok_button(), button="LEFT")
             return products_sold
             
         else:
             #if false returned, either customer canceled trade in conformation screen, or product check failed
-            cancel_button = self.app_region.exists(self._images.get_trade(phase="confirm", filename="cancel_button"))
+            cancel_button = self.app_region.exists(self._images.get_trade(subsection="confirm", filename="cancel_button"))
             if cancel_button:
                 self.slow_click(cancel_button.getTarget())
             self._slow_click(target=self._images.get_ok_button())
