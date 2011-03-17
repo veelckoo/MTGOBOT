@@ -34,9 +34,8 @@ class MainController(object):
         self.Isignin = ISignIn.ISignIn()
         self.Iclassified = IClassified.IClassified()
         self.Ichat = IChat.IChat()
-        self.selling_greeting = """Entering selling mode.  When you are finished taking products, please type the word \"DONE\" in all lowercase"""
-        self.buying_greeting = """Entering buying mode.  I will search your collection for products to buy.  Please wait..."""
-        
+        self.selling_greeting = "Entering selling mode.  When you are finished taking products, please type the word \"DONE\" in all lowercase, and click confirm."
+        self.buying_greeting = "Entering buying mode.  I will search your collection for products to buy.  This may take several minutes.  Please wait..."
         
         #run the controllers startup method on instanciation
         self.mode = settings["DEFAULTMODE"]

@@ -13,7 +13,7 @@ from sikuli.Sikuli import *
 
 #CARD_BUYING = Whether the bot will search for specific cards in searchfield or just skim through the collection
 #by category.  Search is better if your card buy list is small(less than a dozen or so), all is better if there
-#are many cards listed in the card_buy pricelist, meaning there are many cards you would buy
+#are many cards listed in the card_buy pricelist, meaning there are many cards you would buy.  Valid strings: "bulk", "search"
 
 settings = {"ERRORHANDLERAPP":"Notepad", 
             "LOGIN_WAIT":45, 
