@@ -30,11 +30,6 @@ Obviously.
 
 
 Starting the application:
-First thing's first.  I'm still trying to figure out a way to get the relative paths from Python.
-
-You must go through each of the python files(.py) and edit the import path at the top to wherever you have this folder located.
-*Technical
-With Sikuli, there are no sys.argv variables, so I am unable to get the relative path of the script file that way.
 
 *IMPORTANT
 I have screencapture all the images while the Magic Online App was in it's default size.  What this means is that you should not maximize the Magic Online or change it's size.  I plan to add support for a maximized window in the future.
