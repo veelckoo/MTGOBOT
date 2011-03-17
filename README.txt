@@ -31,6 +31,8 @@ Obviously.
 
 Starting the application:
 
+Right click on start.bat and edit it.  Replace the "c:/program files (x86)/sikuli x/sikuli-IDE.bat" with wherever your sikuli-IDE.bat file is located.  Obvious places would be, if not in program files (x86), then in program files folder.
+
 *IMPORTANT
 I have screencapture all the images while the Magic Online App was in it's default size.  What this means is that you should not maximize the Magic Online or change it's size.  I plan to add support for a maximized window in the future.
 
