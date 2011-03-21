@@ -1,17 +1,17 @@
 from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
-
 import sys
 sys.path.append(path_to_bot + "model/pricelist")
 import ProductPriceModel
+
 
 class CardPricesDAL(object):
     #DAL layer for pricelist for buying and selling single cards
     def __init__(self):
         price_model = ProductPriceModel.ProductPriceModel()
-        self.buy = price_model.get_prices("cards_buy")
-        self.sell = price_model.get_prices("cards_sell")
+        self.buy = price_model.get_prices(product="cards", list="buy")
+        self.sell = price_model.get_prices(product="cards", list="sell")
        
     #set prices is to be done in gui bot settings prior to transaction
     def set_buy_price(self, name, price):

@@ -10,8 +10,8 @@ class PackPricesDAL(object):
     #DAL layer for pricelist for buying and selling packs
     def __init__(self):
         price_model = ProductPriceModel.ProductPriceModel()
-        self.buy = price_model.get_prices("packs_buy")
-        self.sell = price_model.get_prices("packs_sell")
+        self.buy = price_model.get_prices(product="packs", list="buy")
+        self.sell = price_model.get_prices(product="packs", list="sell")
         
     #set prices is to be done in gui bot settings prior to transaction
     def set_buy_price(self, name, price):

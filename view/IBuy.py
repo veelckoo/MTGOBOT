@@ -103,19 +103,47 @@ class IBuy(ITrade.ITrade):
     def take_bulk_cards(self):
         #this will buy all rares, mythics, uncommons, and/or commons that the customer has available
         tickets_to_give = 0
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
+        #total number of products taken
+        total_amount_of_products_taken = 0
         
-        for filter, valid in bulkcardbuying.iteritems():
-            if valid is "yes":
-                self.filter_product_rarity(rarity=filter)
-                for setname, valid in bulkcardbuying["set"].iteritems():
-                    if valid is "yes":
-                        self.filter_product_set(set=setname)
-                        #sort cards alphabetically
-                        click(self.name_sort_button_location)
-                    product_name_region = Region(self.confirm_button.getX()-271, self.confirm_button.getY()+47, 159, 15)
-                    product_quantity_region = Region(self.confirm_button.getX()-113, self.confirm_button.getY()+47, 40, 15)
-                    
-                    
+        #will iterate once for filtering by rarity then by set
+        for filter, filter_settings in bulkcardbuying.iteritems():
+            if filter == "rarity":
+                #will iterate once for each rarity that is set to "yes"
+                for rarity, valid in filter_settings.iteritems():
+                    if valid == "yes":
+                        print("setting rarity to " + str(rarity))
+                        self.filter_product_rarity(rarity=rarity)
+                        #will iterate through all sets that are set to "yes"
+                        for set in bulkcardbuying["set"]:
+                            for setname, valid in set.iteritems():
+                                if valid == "yes":
+                                    self.filter_product_set(set=setname)
+                                    
+                                    found = True
+                                    while found:
+                                        found = False
+                                        for num in range(settings["BULK_BUY_OPTIONS"]["max_amount"]):
+                                            print("checking number " + str(num))
+                                            
+                                            #if we've reached the maximum amount of products able to be traded at one time, then break
+                                            if total_amount_of_products_taken + num > 75:
+                                                    break
+                                            elif tickets_to_give + (num * settings["BULK_BUY_OPTIONS"]["prices"][rarity]) > 75:
+                                                    break
+                                                    
+                                            if num == 0:
+                                                continue
+                                            numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]))
+                                            if numbersearch:
+                                                print(str(num) + " cards found, taking...")
+                                                self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=num)
+                                                tickets_to_give += settings["BULK_BUY_OPTIONS"]["prices"][rarity] * num
+                                                wait(0.5)
+                                                total_amount_of_products_taken += num
+                                                found = True
+                                                break
         return tickets_to_give
     
     def take_specific_cards(self):
@@ -141,11 +169,10 @@ class IBuy(ITrade.ITrade):
                     numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9))
                     if numbersearch:
                         print(str(num) + " = amount")
-                        amount = num
-                        self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=amount)
-                        wait(1)
+                        self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity=num)
+                        wait(0.5)
                         break
-                card_obj = Product.Product(name=card, buy=self.__card_prices.get_buy_price(card), sell=self.__card_prices.get_sell_price(card), quantity=amount)
+                card_obj = Product.Product(name=card, buy=self.__card_prices.get_buy_price(card), sell=self.__card_prices.get_sell_price(card), quantity=num)
                 cards_taken.append(card_obj)
         
         tickets_to_give = 0
@@ -160,7 +187,7 @@ class IBuy(ITrade.ITrade):
     
     def take_products(self):
         #confirm button will be used for relative positioning the regions for products scanning in preconfirm stage
-        self.confirm_button = self.app_region.exists(self._images.get_trade(filename="confirm_button"), 30)
+        self.confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"), 30)
         #find the position in the window where the topmost product would be located
         
         self.topmost_product_name_area = Region(self.confirm_button.getX()-271, self.confirm_button.getY()+47, 159, 15)
@@ -172,11 +199,12 @@ class IBuy(ITrade.ITrade):
         self._slow_click(loc=self.name_sort_button_location)
         
         tickets_to_give = 0
+        
         #DEBUG
-        #tickets_to_give += self.take_packs()
+        tickets_to_give += self.take_packs()
 
-        if settings["CARD_BUYING"] == "all":
-            tickets_for_cards = self.take_all_cards()
+        if settings["CARD_BUYING"] == "bulk":
+            tickets_for_cards = self.take_bulk_cards()
         elif settings["CARD_BUYING"] == "search":
             tickets_for_cards = self.take_specific_cards()
 
@@ -188,7 +216,7 @@ class IBuy(ITrade.ITrade):
         return tickets_to_give
         
     def preconfirm_scan_purchase(self):
-        #will scan the giving and receiving window to see if items match
+        #will scan the giving and receiving window to see if items match prior to going to final confirmation stage
         taking_name_region = Region(self.taking_window_region.getX()+34, self.taking_window_region.getY()+45, 145, 17)
         taking_number_region = Region(self.taking_window_region.getX(), self.taking_window_region.getY()+45, 30, 17)
         
@@ -248,7 +276,7 @@ class IBuy(ITrade.ITrade):
     def confirmation_scan(self):
         """will return number of tickets taken for transaction recording"""
         #verify confirm window by checking for confirm cancel buttons, then set regions relative to those buttons
-        confirm_button = exists(self._images.get_trade(filename="confirm_button", subsection="confirm"), 1200)
+        confirm_button = exists(self._images.get_trade("confirm_button", "confirm"), 1200)
         
         if not confirm_button:
             self._slow_click(loc=Pattern(self._images.get_trade["cancel_button"]))
@@ -259,80 +287,119 @@ class IBuy(ITrade.ITrade):
             pack_names_keys = self._images.get_pack_keys()
             product_names_list = pack_names_keys[:]
             product_names_list.extend(self._images.get_card_keys())
+            rarities_list = self._images.trade["confirm"]["rarity"]
             
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
             #confirm products receiving
-            #set the regions of a single product and and the amount slow
-            #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
-            receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+41, 34, 14)
+            #these regions correspond to a single row from each column
             #height for each product is 13px, and 4px buffer vertically between each product slot
-            receiving_name_region = Region(confirm_button.getX()-254, confirm_button.getY()+41, 160, 14)
+            receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+41, 34, 17)
+            receiving_name_region = Region(confirm_button.getX()-254, confirm_button.getY()+41, 160, 17)
+            receiving_rarity_region = Region(confirm_button.getX()+340, confirm_button.getY()+41, 61, 17)
+            receiving_set_region = Region(confirm_button.getX()+291, confirm_button.getY()+41, 45, 17)
+            
             #confirm products giving
-            giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 14)
-            giving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+391, 160, 14)
+            giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 17)
+            giving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+391, 160, 17)
             #this is a variable that will hold the number of pixels to move down after scanning each area
+            #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
+            #alternating numbers 4 or 5
             how_many_pixels_to_move_down = 0
             
             found=True
-            while found:
-                hover(Location(receiving_number_region.getX(), receiving_number_region.getY()))
-                found=False
-                for product_abbr in product_names_list:
-                    
-                    try:
-                        product = self._images.get_pack_text(phase="confirm", packname=product_abbr)
-                    except KeyError:
+            if settings["CARD_BUYING"] == "search":
+                while found:
+                    found=False
+                    #scan each product one by one for it's name and quantity
+                    for product_abbr in product_names_list:
+                        
                         try:
-                            product = self._images.get_card_text(phase="confirm", packname=product_abbr)
+                            product = self._images.get_pack_text(phase="confirm", packname=product_abbr)
                         except KeyError:
-                            continue
-                    
-                    if receiving_name_region.exists(Pattern(product).similar(0.8)):
-                        
-                        #if still at 0 after for loop, error raised
-                        amount = 0
-                        for number in range(len(numbers)):
-                            if number == 0:
+                            try:
+                                product = self._images.get_card_text(phase="confirm", packname=product_abbr)
+                            except KeyError:
                                 continue
-                            if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
-                                amount = number
-                                
-                                #packs are listed in Magic in the same sequence they are listed in the list of pack keys,
-                                #if a pack is found, all packs including it and before, are removed from the list of packs
-                                #to search
-                                product_index = product_names_list.index(product_abbr) + 1
-                                product_names_list = product_names_list[product_index:]
-                                break
-                            
-                        product_obj = Product.Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
-                        receiving_products_found.append(product_obj)
-                                            
-                        if amount == 0:
-                            raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
-                        found=True
                         
-                        if how_many_pixels_to_move_down != 17:
-                            how_many_pixels_to_move_down = 17
-                        else:
-                            how_many_pixels_to_move_down =  18
-                        receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
-                        receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
-                        break
+                        if receiving_name_region.exists(Pattern(product).similar(0.8)):
+                            
+                            #if still at 0 after for loop, error raised
+                            amount = 0
+                            for number in range(len(numbers)):
+                                if number == 0:
+                                    continue
+                                if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
+                                    amount = number
+                                    
+                                    #packs are listed in Magic in the same sequence they are listed in the list of pack keys,
+                                    #if a pack is found, all packs including it and before, are removed from the list of packs
+                                    #to search
+                                    product_index = product_names_list.index(product_abbr) + 1
+                                    product_names_list = product_names_list[product_index:]
+                                    break
+                                
+                            product_obj = Product.Product(name=product_abbr, buy=self.__pack_prices.get_buy_price(product_abbr), sell=self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
+                            receiving_products_found.append(product_obj)
+                                                
+                            if amount == 0:
+                                raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
+                            found=True
+                            
+                            if how_many_pixels_to_move_down != 17:
+                                how_many_pixels_to_move_down = 17
+                            else:
+                                how_many_pixels_to_move_down =  18
+                            receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
+                            receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
+                            break
+            else:
+                #scan the rarity and the amount to calculate total price
+                while found:
+                    found = False
+                    for rarity, file in rarities_list.iteritems():
+                        print("Looking for " + str(file))
+                        print("hovering at " + str(receiving_rarity_region.x) + ", " + str(receiving_rarity_region.y))
+                        if receiving_rarity_region.exists(Pattern(file).similar(0.7)):
+                            print("found a " + str(rarity))
+                            
+                            for number in range(len(numbers)):
+                                if number == 0:
+                                    continue
+                                if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
+                                    amount = number
+                                    break
+
+                            product_obj = Product.Product(name=str(rarity + "s"), buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=amount)
+                            receiving_products_found.append(product_obj)
+
+                            if amount == 0:
+                                raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
+                            found = True
+
+                            if how_many_pixels_to_move_down != 17:
+                                how_many_pixels_to_move_down = 17
+                            else:
+                                how_many_pixels_to_move_down = 18
+                            receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
+                            receiving_rarity_region = Region(receiving_rarity_region.getX(), receiving_rarity_region.getY()+how_many_pixels_to_move_down, receiving_rarity_region.getW(), receiving_rarity_region.getH())
+                            
+                            break
             
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
             for product in receiving_products_found:
                 expected_number += product["quantity"] * product["buy"]
-            
+
+            print("expected number of tickets " + str(expected_number))
+
             if expected_number == 0:
                 return False
-                
+
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if giving_name_region.exists(ticket_text_image):
                 expected_number_image = Pattern(self._images.get_number(number=expected_number, category="trade", phase="confirm")).similar(0.7)
                 if giving_number_region.exists(expected_number_image):
-                    
                     return receiving_products_found
                 else:
                     return False
@@ -346,12 +413,12 @@ class IBuy(ITrade.ITrade):
             #requires IChat interface to be passed to tell customers how many tickets to take
             
             #switch to list view in the collection window
-            self._slow_click(target=self._images.get_trade(filename="list_view_collection_window"))
+            self._slow_click(target=self._images.get_trade("list_view_collection_window"))
             
             running_total = self.take_products()
             
             if running_total == 0 or not running_total:
-                cancel_button = self.app_region.exists(self._images.get_trade(filename="cancel_button"))
+                cancel_button = self.app_region.exists(self._images.get_trade("cancel_button"))
                 if cancel_button:
                     self.slow_click(loc=cancel_button.getTarget())
                 self._slow_click(target=self._images.get_ok_button())
@@ -373,16 +440,16 @@ class IBuy(ITrade.ITrade):
         
             if products_bought:
                 
-                self._slow_click(target=self._images.get_trade(subsection="confirm", filename="confirm_button"))
+                self._slow_click(target=self._images.get_trade("confirm_button", "confirm"))
                 wait(Pattern(self._images.get_ok_button()), 600)
                 self._slow_click(target=self._images.get_ok_button())
             
                 return products_bought
                 
             else:
-                cancel_button = self.app_region.exists(self._images.get_trade(subsection="confirm", filename="cancel_button"))
+                cancel_button = self.app_region.exists(self._images.get_trade("cancel_button", "confirm"))
                 if cancel_button:
-                    self.slow_click(loc=cancel_button.getTarget())
+                    self._slow_click(loc=cancel_button.getTarget())
                 self._slow_click(target=self._images.get_ok_button())
                 return False
             

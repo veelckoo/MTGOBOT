@@ -44,7 +44,11 @@ class ITrade(Interface.Interface):
         click(Location(confirm_button.x+600, confirm_button.y+556))
         type("c", KEY_CTRL)
         #copy test to variable "msg"
-        clipboard = Env.getClipboard()
+        wait(0.5)
+        try:
+            clipboard = Env.getClipboard()
+        except java.lang.IllegalStateException:
+            clipboard = "Unknown"
         #smiley faces [sS] are appended to usernames who are on your buddy list, remove them
         if "[sS]" in clipboard:
             copied_wo_emote = clipboard.split("[sS]")[0]
@@ -93,36 +97,36 @@ class ITrade(Interface.Interface):
     def filter_product_rarity(self, rarity):
         #filter product by rarity, only applies to cards
         #valid string values are: any, common, uncommon, rare, mythic
-        confirm_button = self.app_region.exists(Pattern(self._images.get_trade("confirm_button")).similar(0.9))
+        confirm_button = self.app_region.exists(Pattern(self._images.trade["confirm_button"]).similar(0.9))
         rarity_menu_loc = Location(confirm_button.getX()+110, confirm_button.getY()-26)
         self._slow_click(loc=rarity_menu_loc)
-        self._slow_click(target=self._images.get_trade(subsection="rarity", filename=rarity))
+        self._slow_click(target=self._images.trade["filters"]["rarity"][rarity])
         
     def filter_product_version(self, version):
         #go to the product filter options and filter all product searches
         #valid string values for filter argument: packs_tickets
-        confirm_button = self.app_region.exists(Pattern(self._images.get_trade("confirm_button")).similar(0.9))
+        confirm_button = self.app_region.exists(Pattern(self._images.trade["confirm_button"]).similar(0.9))
         version_menu_loc = Location(confirm_button.getX()+210, confirm_button.getY()-26)
         self._slow_click(loc=version_menu_loc)
-        self._slow_click(target=self._images.get_trade(subsection="version", filename=version))
+        self._slow_click(target=self._images.trade["filters"]["version"][version])
         
     def filter_product_set(self, set):
         #filter the search by the set the product was printed in
-        confirm_button = self.app_region.exists(Pattern(self._images.get_trade("confirm_button")).similar(0.9))
+        confirm_button = self.app_region.exists(Pattern(self._images.trade["confirm_button"]).similar(0.9))
         set_menu_loc = Location(confirm_button.getX()+140, confirm_button.getY()-65)
         self._slow_click(loc=set_menu_loc)
         #if set isn't found, mouse wheel down the menu
-        set_found = self.app_region.exsts(self._images.get_trade(subsection="set", filename=set))
-        
+        set_found = self.app_region.exists(self._images.trade["filters"]["set"][set])
+        print("filter product set called with " + str(set))
         if not set_found:
             for i in range(39):
-                click(self._images.get_trade(subsection="set", filename="scroll_down"))
-            set_found = self.app_region.exists(self._images.get_trade(subsection="set", filename=set))
+                click(self._images.trade["filters"]["set"]["scroll_down"])
+            set_found = self.app_region.exists(self._images.trade["filters"]["set"][set])
             if not set_found:
                 raise Exception("The filter option for set: " + str(set) + ", was not found")
                 
-        self._slow_click(target=self._images.get_trade(subsection="set", filename=set))
+        self._slow_click(target=self._images.trade["filters"]["set"][set])
         
     def go_to_confirmation(self):
-        confirm_button = self._images.get_trade(filename="confirm_button")
+        confirm_button = self._images.get_trade("confirm_button")
         self._slow_click(target=confirm_button)

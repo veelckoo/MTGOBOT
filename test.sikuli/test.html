@@ -70,12 +70,21 @@
 <h2>test.sikuli\test.sikuli</h2> <a href="test.sikuli\test.zip">(Download this script)</a>
 </div>
 <pre class="sikuli-code">
-img = Pattern(<img src="../Images/trade/set/scroll_down.png" />)
+xy = <span class="str">"1096 227"</span>
+reg = Region(<span class="dig">1096</span>, <span class="dig">227</span>, <span class="dig">61</span>, <span class="dig">16</span>)
+img = <img src="../Images/trade/confirm_window/Mythic.png" />
+buffer = <span class="dig">0</span>
 
-match = <span class="skw">find</span>(img)
-loc = Location(match.x, match.y)
-
-hover(loc)
+<span class="kw">for</span> i <span class="kw">in</span> range(<span class="dig">9</span>):
+        hover(Location(reg.x, reg.y))
+        confirm_button = reg.<span class="skw">find</span>(img)
+        <span class="kw">if</span> confirm_button:
+                <span class="kw">print</span>(<span class="str">"Found one at "</span> + str(reg.x) + <span class="str">", "</span> + str(reg.y))
+        <span class="kw">if</span> buffer != <span class="dig">17</span>:
+                buffer = <span class="dig">17</span>
+        <span class="kw">else</span>:
+                buffer = <span class="dig">18</span>
+        reg.y += buffer
 </pre>
 </body>
 </html>
