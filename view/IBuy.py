@@ -52,9 +52,9 @@ class IBuy(ITrade.ITrade):
         while found:
             found = False
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
-            if tickets_to_give  >= 75:
+            if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-            if self.number_of_products_taken >= 75:
+            if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
             
             for pack_abbr in pack_names_keys:
@@ -99,12 +99,10 @@ class IBuy(ITrade.ITrade):
 
                     if amount > 0:
                         #if the amount of products would push the ticket total or products total over 75, then take just enough to get to 75 or closest
-                        if self.number_of_products_taken + amount > 75:
-                            amount = 75 - self.number_of_products_taken
-                        if tickets_to_give + (self.pack_inventory.get_buy_price(pack_abbr) * amount) > 75:
-                            amount = int((75 - tickets_to_give) / self.pack_inventory.get_buy_price(pack_abbr))
-                        print("amount = int((75 - " + str(tickets_to_give) + " / " + str(self.pack_inventory.get_buy_price(pack_abbr)) + ")")
-                        print("amount = " + str(amount))
+                        if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
+                            amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
+                        if tickets_to_give + (self.pack_inventory.get_buy_price(pack_abbr) * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
+                            amount = int((settings["MAX_PRODUCTS_PER_TRADE"] - tickets_to_give) / self.pack_inventory.get_buy_price(pack_abbr))
                         self.take_product(product_loc=product_name_area.getCenter(), quantity_to_take=amount)
 
                         pack_abbr_index = pack_names_keys.index(pack_abbr)+1
@@ -113,7 +111,6 @@ class IBuy(ITrade.ITrade):
                         pack_obj = Product.Product(name=pack_abbr, buy = self.pack_inventory.get_buy_price(pack_abbr), sell = self.pack_inventory.get_sell_price(pack_abbr), quantity=amount)
                         self.products_taken.append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
-                        print("running total for packs = " + str(tickets_to_give))
                         break
                     else:
                         break
@@ -128,20 +125,23 @@ class IBuy(ITrade.ITrade):
         
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
-        self.filter_product_version("all_versions")
+        if settings["BUY_FOIL"] == "yes":
+            self.filter_product_version("all_versions")
+        else:
+            self.filter_product_version("regular")
         
         #will iterate once for filtering by rarity then by set
         for filter, filter_settings in bulkcardbuying.iteritems():
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
-            if tickets_to_give  >= 75:
+            if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-            if self.number_of_products_taken >= 75:
+            if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
                         
             if filter == "rarity":
                 #will iterate once for each rarity that is set to "yes"
                 for rarity, valid in filter_settings.iteritems():
-                    if tickets_to_give >= 75:
+                    if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                         break
                     if valid == "yes":
                         print("setting rarity to " + str(rarity))
@@ -149,14 +149,14 @@ class IBuy(ITrade.ITrade):
                         #will iterate through all sets that are set to "yes"
                         for set in bulkcardbuying["set"]:
                             for setname, valid in set.iteritems():
-                                if tickets_to_give >= 75:
+                                if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                                     break
                                 if valid == "yes":
                                     self.filter_product_set(set=setname)
                                     
                                     found = True
                                     while found:
-                                        if tickets_to_give >= 75:
+                                        if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                                             break
                                         found = False
                                         for num in range(settings["BULK_BUY_OPTIONS"]["max_amount"]):
@@ -169,11 +169,10 @@ class IBuy(ITrade.ITrade):
                                                 print(str(num) + " cards found, taking...")
                                                 amount = num
                                                 #if we've reached the maximum amount of products able to be traded at one time, then break
-                                                if self.number_of_products_taken + amount > 75:
-                                                        amount = 75 - self.number_of_products_taken
-                                                if tickets_to_give + (settings["BULK_BUY_OPTIONS"]["prices"][rarity] * amount) > 75:
-                                                    amount = int((75 - tickets_to_give) / settings["BULK_BUY_OPTIONS"]["prices"][rarity])
-                                                print("amount = int((75 - " + str(tickets_to_give) + ") / " + str(settings["BULK_BUY_OPTIONS"]["prices"][rarity]))
+                                                if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
+                                                        amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
+                                                if tickets_to_give + (settings["BULK_BUY_OPTIONS"]["prices"][rarity] * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
+                                                    amount = int((settings["MAX_PRODUCTS_PER_TRADE"]- tickets_to_give) / settings["BULK_BUY_OPTIONS"]["prices"][rarity])
                                                 
                                                 if amount <= 0:
                                                     break
@@ -190,25 +189,27 @@ class IBuy(ITrade.ITrade):
     
     def search_for_specific_cards(self, tickets_to_give=0):
         #this will search for specific cards on the buy list to buy
-        self.filter_product_version(version="all_versions")
+        if settings["BUY_FOIL"] == "yes":
+            self.filter_product_version("all_versions")
+        else:
+            self.filter_product_version("regular")
         wait(1)
         searchfield = Location(self.confirm_button.x-220, self.confirm_button.y-28)
         searchbutton = Location(self.confirm_button.x-255, self.confirm_button.y-28)
         cards_taken = []
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
-        self.filter_product_version("all_versions")
-        number_of_searches = 2 if settings["SEARCH_BUY_FOIL"] == "yes" else 1
+        number_of_searches = 2 if settings["BUY_FOIL"] == "yes" else 1
         
         for cardname, inv in self.card_inventory.inventory.items():
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
-            if tickets_to_give  >= 75:
+            if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-            if self.number_of_products_taken >= 75:
+            if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
             
-            if tickets_to_give  >= 75:
+            if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-            if self.number_of_products_taken >= 75:
+            if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
                 
             #check how many copies of the card to buy, if 0 cards are desired, skip to the next card on list
@@ -222,6 +223,7 @@ class IBuy(ITrade.ITrade):
             wait(2)
             cardsearch = self.topmost_product_name_area.exists(Pattern(self._images.get_card_text(cardname=cardname, phase="preconfirm")).similar(0.9))
             if cardsearch:
+            
                 #sweeps have to be done twice in case there is a foil version AND a regular version of card
                 for x in range(number_of_searches):
                     print(cardname + " has been found!")
@@ -244,10 +246,10 @@ class IBuy(ITrade.ITrade):
                             break
                     
                     if amount > 0:
-                        if self.number_of_products_taken + amount > 75:
-                            amount = 75 - self.number_of_products_taken
-                        if tickets_to_give + (self.card_inventory.get_buy_price(cardname) * amount) > 75:
-                            amount = int((75 - tickets_to_give) / self.card_inventory.get_buy_price(cardname))
+                        if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
+                            amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
+                        if tickets_to_give + (self.card_inventory.get_buy_price(cardname) * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
+                            amount = int((settings["MAX_PRODUCTS_PER_TRADE"] - tickets_to_give) / self.card_inventory.get_buy_price(cardname))
                         
                         self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity_to_take=amount)
                         wait(0.5)
@@ -326,6 +328,7 @@ class IBuy(ITrade.ITrade):
             card_names_list = self.card_inventory.get_card_name_list()
             product_names_list = card_names_list[:]
             product_names_list.extend(self.pack_inventory.get_sorted_pack_list())
+            product_names_list = sorted(product_names_list)
             
             rarities_list = self._images.trade["confirm"]["rarity"]
             
@@ -374,19 +377,20 @@ class IBuy(ITrade.ITrade):
                                 if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
                                     print(str(number) + " amount of " + product_abbr + " found!")
                                     amount = number
-                                    
+
                                     #packs are listed in Magic in the same sequence they are listed in the list of pack keys,
                                     #if a pack is found, all packs including it and before, are removed from the list of packs
                                     #to search
                                     product_index = product_names_list.index(product_abbr) + 1
                                     product_names_list = product_names_list[product_index:]
                                     break
+
                             if current_product == "pack":
                                 product_obj = Product.Product(name=product_abbr, buy=self.pack_inventory.get_buy_price(product_abbr), sell=self.pack_inventory.get_sell_price(product_abbr), quantity=amount)
                             elif current_product == "card":
                                 product_obj = Product.Product(name=product_abbr, buy=self.card_inventory.get_buy_price(product_abbr), sell=self.card_inventory.get_sell_price(product_abbr), quantity=amount)
                             receiving_products_found.append(product_obj)
-                                                
+
                             if amount == 0:
                                 raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
                             found=True

@@ -106,6 +106,7 @@ class ITrade(Interface.Interface):
     def take_product(self, product_loc, quantity_to_take):
         #right click on the product to open context menu
         while quantity_to_take > 0:
+            wait(0.2)
             if quantity_to_take < 10:
                 doubleClick(product_loc)
                 quantity_to_take -= 1
