@@ -1,3 +1,3 @@
-from ProductPriceModel import *
-from CardPriceDAL import *
-from PackPriceDAL import *
+from InventoryAdapter import *
+from CardInventoryModel import *
+from PackInventoryModel import *

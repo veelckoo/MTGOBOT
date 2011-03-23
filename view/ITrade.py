@@ -93,7 +93,31 @@ class ITrade(Interface.Interface):
             return True
         else:
             return False
-    
+
+    def take_all_copies_of_product(self):
+        #this will take all the packs from the given location
+        #right click on the product to open context menu
+        self._slow_click(loc=product_loc, button="Right")
+        #take 32 at a time, until there are no more, Magic Online UI will give all if there are less than 32 left
+        while quantity > 0:
+            self._slow_click(self._images.get_amount(32))
+            quantity -= 32
+
+    def take_product(self, product_loc, quantity_to_take):
+        #right click on the product to open context menu
+        while quantity_to_take > 0:
+            if quantity_to_take < 10:
+                doubleClick(product_loc)
+                quantity_to_take -= 1
+            else:
+                self._slow_click(loc=product_loc, button="Right")
+                if quantity_to_take >= 32:
+                    self._slow_click(self._images.get_amount(32))
+                    quantity_to_take -= 32
+                elif quantity_to_take >= 10:
+                    self._slow_click(self._images.get_amount(10))
+                    quantity_to_take -= 10
+
     def filter_product_rarity(self, rarity):
         #filter product by rarity, only applies to cards
         #valid string values are: any, common, uncommon, rare, mythic

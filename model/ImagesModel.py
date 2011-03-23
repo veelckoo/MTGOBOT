@@ -191,22 +191,23 @@ class ImagesModel(object):
                     "WWK": {"Jace, the Mind Sculptor": ""},  
                     "ZEN": {"":""}}
                     
-    def get_card_text(self, cardname, phase=None):
-        if not cardname in self.card_names_list:
-            raise KeyError("Card name not found in cards_names_list")
-            return None
-        else:
-            filepath = "../Images/product/cards/text/"
-            if phase == "confirm":
-                filepath += "confirm/"
-            filepath += str(cardname) + ".png"
-            return filepath
-            
-    def get_card_text(self, phase, set, cardname):
+    def get_card_text(self, phase, cardname):
+        #if can't find png file for cardname in one phase, try other phase, most cards are the same except for longer names
         try:
             card = open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname + ".png", "r")
         except IOError:
-            raise KeyError(cardname + " not found")
+            try:
+                if phase == "confirm":
+                    alt_path = "preconfirm"
+                else:
+                    alt_path = "confirm"
+                card = open(path_to_bot + "Images/product/cards/text/" + alt_path + "/" + cardname + ".png", "r")
+            except IOError:
+                raise Exception("PNG file for " + cardname + " text not found.")
+            else:
+                card.close()
+                filepath = "../Images/product/cards/text/" + alt_path + "/" + cardname + ".png"
+                return filepath
         else:
             card.close()
             filepath = "../Images/product/cards/text/" + phase + "/" + cardname + ".png"
@@ -216,7 +217,7 @@ class ImagesModel(object):
         try:
             card = open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname + ".png", "r")
         except IOError:
-            raise KeyError(cardname + " not found")
+            raise Exception("PNG file for " + cardname + " image not found")
         else:
             card.close()
             filepath = "../Images/product/cards/img/" + phase + "/" + cardname + ".png"
@@ -226,14 +227,6 @@ class ImagesModel(object):
     
     def get_card_keys(self):
         return self.card_names_list
-    
-    #stores the images of each pack
-    #this is a list of all packs to buy and sell
-    pack_names_list = ["M11", "ME4", "MBS", "ROE", "SOM", "WWK", "ZEN"]
-    
-    def get_pack_keys(self):
-        return self.pack_names_list
-    
     def get_pack_text(self, phase, packname):
         try:
             pack = open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname + ".png", "r")

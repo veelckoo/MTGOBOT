@@ -1,10 +1,8 @@
-8ED | 4 | 3
-9ED | 4 | 3
-MBS | 4 | 3
-ME4 | 4 | 3
-M10 | 4 | 3
-M11 | 4 | 3
-ROE | 4 | 3
-SOM | 4 | 3
-WWK | 5 | 4
-ZEN | 5 | 4
+#product name | sell price | buy price | in stock | desired stock
+MBS | 4 | 3 | 32 | 80
+ME4 | 4 | 3 | 3 | 25
+M11 | 4 | 3 | 3 | 20
+ROE | 4 | 3 | 3 | 10
+SOM | 4 | 3 | 2 | 80
+WWK | 5 | 4 | 3 | 15
+ZEN | 5 | 4 | 6 | 30

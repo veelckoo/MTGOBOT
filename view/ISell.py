@@ -5,8 +5,8 @@ path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 import sys
 sys.path.append(path_to_bot + "model/pricelist")
-import PackPricesDAL
-import CardPricesDAL
+import PackInventoryModel
+import CardInventoryModel
 
 sys.path.append(path_to_bot + "model")
 import Product
@@ -19,38 +19,14 @@ class ISell(ITrade.ITrade):
     
     def __init__(self):
         super(ISell, self).__init__()
-        self.__pack_prices = PackPricesDAL.PackPricesDAL()
-        self.__card_prices = CardPricesDAL.CardPricesDAL()
-        
-    def tickets_to_take_for_cards(self):
-        #scan which cards taken and how many and determine tickets to take ticket
-        #found is a dictionary of all cards found, key is name of card, value is number taken
-        found = []
-        cards = self._image.get_cards()
-        self.search_for_images_sale(region, cards)
-        
-    def tickets_to_take_for_packs(self):
-        #scan the numbers of packs taken and determine number of tickets to take
-        """
-        returns the number of tickets to takes in the form of the Images.number[] format
-        """
-        
-        #in case the user has canceled
-        if not found:
-            return False
-            
-        self.products_giving = found
-        #calculate tickets to take
-        total_tickets_to_take = self.calculate_products_to_tickets(found)
-        
-        #return the the number of packs that should be taken, number in image form
-        return total_tickets_to_take
+        self.pack_inventory = PackInventoryModel.PackInventoryModel()
+        self.card_inventory = CardInventoryModel.CardInventoryModel()
     
     def search_for_products(self):
         #searches a certain area for any image in a dictionary
 
         #combine all cards and packs for sale into a list
-        pack_names_list = self._images.get_pack_keys()
+        pack_names_list = self.pack_inventory.get_sorted_pack_list()
         product_names_list = pack_names_list[:]
         product_names_list.extend(self._images.get_card_keys())
         numbers_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -86,14 +62,14 @@ class ISell(ITrade.ITrade):
                         product = self._images.get_card_text(phase="preconfirm", cardname=product_abbr)
                     except KeyError:
                         continue
-                if scan_region.exists(Pattern(product).similar(0.9)):
+                if scan_region.exists(Pattern(product).exact()):
                     found = True
 
                     for key in range(len(numbers_list)):
                         if key == 0:
                             continue
                         
-                        searchPattern = Pattern(numbers_list[key]).similar(0.9)
+                        searchPattern = Pattern(numbers_list[key]).exact()
                         if(scan_region.exists(searchPattern)):
                             amount = key
                             #for booster packs, there is a specific order in which they appear in the list,
@@ -103,7 +79,7 @@ class ISell(ITrade.ITrade):
                             product_names_list = product_names_list[pack_index:]
                             break
 
-                    product = Product.Product(name = product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity = amount)
+                    product = Product.Product(name = product_abbr, buy = self.pack_inventory.get_buy_price(product_abbr), sell = self.pack_inventory.get_sell_price(product_abbr), quantity = amount)
                     products.append(product)
 
                     wheel(scroll_bar_loc, WHEEL_DOWN, 2)
@@ -120,14 +96,6 @@ class ISell(ITrade.ITrade):
             return False
         
         return products
-
-    def calculate_products_to_tickets(self, products_dict):
-        #this takes all the products as a parameter and returns the number of tickets that should be taken
-        running_total = 0
-        for product in products_dict:
-            running_total += (product["quantity"]) * (product["sell"])
-        return running_total
-    
     
     def take_ticket(self, number):
         #if loc cache is saved, then just click on saved locations, otherwise use image match
@@ -198,15 +166,7 @@ class ISell(ITrade.ITrade):
             #no ticket found
             self.Ichat.type_msg("Not enough tickets available.")
             return False
-    
-    def return_ticket(self, number):
-        #clicks on the decrease ticket to return one ticket
-        pass
-        
-    def take_packs(self):
-        #scans users collection for packs wanted
-        pass
-
+            
     def preconfirm_scan_sale(self, products_giving):
         """takes the total number of products taken by customer and checks to see if the correct amount of tickets are in the taking window"""
         numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -251,7 +211,7 @@ class ISell(ITrade.ITrade):
         if isinstance(confirm_button, Match):
             #keeps record of products found and their amount so far
             giving_products_found = []
-            pack_names_keys = self._images.get_pack_keys()
+            pack_names_keys = self.pack_inventory.get_sorted_pack_list()
             product_names_list = pack_names_keys[:]
             product_names_list.extend(self._images.get_card_keys())
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -301,7 +261,7 @@ class ISell(ITrade.ITrade):
                                 
                                 break
                             
-                        product_obj = Product.Product(name=product_abbr, buy = self.__pack_prices.get_buy_price(product_abbr), sell = self.__pack_prices.get_sell_price(product_abbr), quantity=amount)
+                        product_obj = Product.Product(name=product_abbr, buy = self.pack_inventory.get_buy_price(product_abbr), sell = self.pack_inventory.get_sell_price(product_abbr), quantity=amount)
                         giving_products_found.append(product_obj)
                                             
                         if amount == 0:
@@ -348,8 +308,12 @@ class ISell(ITrade.ITrade):
         
         products_giving = self.search_for_products()
         
-        number_of_tickets = self.calculate_products_to_tickets(products_giving)
-        
+        #calculate the number of tickets to take according to products found
+        number_of_tickets = 0
+        for product in products_giving:
+            number_of_tickets += (product["quantity"]) * (product["sell"])
+            
+            
         #if user has canceled or there was any other problem
         if not products_giving:
             self.cancel_trade()
@@ -363,7 +327,9 @@ class ISell(ITrade.ITrade):
             
         self.filter_product_version(version="tickets_packs")
         
-        take_result = self.take_ticket(number_of_tickets)
+        tickets = self.app_region.exists(self._images.get_ticket())
+        
+        take_result = self.take_product(product_loc=tickets.getTarget(), quantity_to_take=number_of_tickets)
         
         #if trade was canceled or take tickets failed
         if not take_result:
@@ -379,13 +345,6 @@ class ISell(ITrade.ITrade):
             return False
         
         self.go_to_confirmation()
-        #check to make sure correct number of tickets taken
-        
-        #INSERT PRE-FINAL TRANSACTION CHECK HERE#
-        
-        #scan confirmation screen multiple times in different ways before clicking final confirm
-        
-        #INSERT FINAL TRANSACTION CHECK HERE#
         
         #returns an object that holds all products sold if successful scan
         #otherwise returns False
