@@ -27,10 +27,16 @@ class PackInventoryModel(object):
         return self.inventory[pack_abbr]["stock"]
     def get_max_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["max"]
-        
+    
     def get_sorted_pack_list(self):
         """this is a list of all pack to abbreviations in alphabetical order according to 
         their full names(which is how they are sorted by interface) which the bot should buy/sell"""
-        all_packs = ["ALA", "ARB", "8ED", "M11", "M10", "MED", "ME2", "ME3", "ME4", "MBS", "9ED", "ROE", "SOM", "7ED", "10E", "WWK", "ZEN"]
+        all_packs = ["alara reborn", "shards of alara", "conflux", "eighth edition", "magic 2011", "magic 2010", "masters edition",
+                               "masters edition 2", "masters edition 3", "masters edition 4", "mirrodin besieged", "ninth edition", "rise of the eldrazi",
+                               "scars of mirrodin", "seventh edition", "tenth edition", "worldwake", "zendikar"]
         packs_to_buy_sell = [abbr for abbr in all_packs if abbr in self.inventory.keys()]
+        packs_to_buy_sell.sort()
+        print(all_packs)
+        print(self.inventory.keys())
+        
         return packs_to_buy_sell

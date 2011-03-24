@@ -22,19 +22,14 @@ class ITrade(Interface.Interface):
         
     def cancel_trade(self):
         #if trade has alreaady been canceled, then click ok, otherwise cancel the trade
-        cancel_button = self.app_region.exists(self._images.get_trade("cancel_button"))
-        if cancel_button:
-            self._slow_click(loc=cancel_button.getTarget())
-        else:
-            cancel_button = self.app_region.exists(self._images.get_trade(subsection="confirm", filename="cancel_button"))
-            if cancel_button:
-                self._slow_click(loc=cancel_button.getTarget())
-        yes_button = self.app_region.exists(self._images.get_trade("yes_button"), 5)
+        self._slow_click(target=self._images.trade["cancel_trade"])
+        wait(2)
+        yes_button = self.app_region.exists(self._images.trade["yes_button"], 1)
         if yes_button:
             self._slow_click(loc=yes_button.getTarget())
-        ok_button = self.app_region.wait(self._images.get_ok_button(), 5)
+        wait(2)
+        ok_button = self.app_region.exists(self._images.get_ok_button())
         if ok_button:
-            print("looking for ok")
             self._slow_click(loc=ok_button.getTarget())
                 
     def get_customer_name(self):
@@ -58,16 +53,11 @@ class ITrade(Interface.Interface):
         
     def accept_trade(self):
         #click on the accept button for a trade
-        print("accept_trade")
         request_loc = self.app_region.exists(self._images.get_trade("yes_button"))
-        print("453")
         if isinstance(request_loc, Match):
-            print("455")
             self._slow_click(loc=request_loc.getTarget())
-            print("457")
             return True
         else:
-            print("460")
             return False
 
     def set_windows(self):
@@ -142,7 +132,6 @@ class ITrade(Interface.Interface):
         self._slow_click(loc=set_menu_loc)
         #if set isn't found, mouse wheel down the menu
         set_found = self.app_region.exists(self._images.trade["filters"]["set"][set])
-        print("filter product set called with " + str(set))
         if not set_found:
             for i in range(39):
                 click(self._images.trade["filters"]["set"]["scroll_down"])

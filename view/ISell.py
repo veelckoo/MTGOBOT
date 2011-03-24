@@ -167,40 +167,6 @@ class ISell(ITrade.ITrade):
             self.Ichat.type_msg("Not enough tickets available.")
             return False
             
-    def preconfirm_scan_sale(self, products_giving):
-        """takes the total number of products taken by customer and checks to see if the correct amount of tickets are in the taking window"""
-        numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
-        
-        ticket = self._images.get_ticket_text()
-        
-        expected_total = 0
-        for product in products_giving:
-            expected_total += product["sell"]*product["quantity"]
-        
-        tickets_found = 0
-        #product height = 17, width = 145, relative distance from upper left region corner, y = 46, x =35
-        scan_region_product = Region(self.taking_window_region.getX()+34, self.taking_window_region.getY()+45, 145, 17)
-        #product height = 17, width = 30, relative distance from upper left region corner, y = 46, x =1
-        scan_region_number = Region(self.taking_window_region.getX(), self.taking_window_region.getY()+45, 30, 17)
-
-        if scan_region_product.exists(ticket):
-            #for performance, start the number scan with the expected number
-            if scan_region_number.exists(self._images.get_number(number=expected_total, category="trade", phase="preconfirm")):
-                tickets_found = expected_total
-            #in case user canceled trade
-            elif self.app_region.exists(self._images.get_trade("canceled_trade")):
-                return False
-            else:
-                for number, number_image in numbers.items():
-                    if scan_region_number.exists(number_image):
-                        tickets_found = number
-                        break
-        print("Expected tickets: " + str(expected_total) + " and tickets found: " + str(tickets_found))
-        if tickets_found >= expected_total:
-            return True
-        else:
-            return False
-  
     def confirmation_scan(self, type=None):
         #does a scan depending on which type is requested.  Each pass should scan the window differently
         #to confirm that the correct
@@ -211,9 +177,11 @@ class ISell(ITrade.ITrade):
         if isinstance(confirm_button, Match):
             #keeps record of products found and their amount so far
             giving_products_found = []
-            pack_names_keys = self.pack_inventory.get_sorted_pack_list()
-            product_names_list = pack_names_keys[:]
-            product_names_list.extend(self._images.get_card_keys())
+            
+            product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
+            product_names_list.sort()
+            
+            
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
             #confirm products receiving
             #set the regions of a single product and and the amount slow
@@ -336,14 +304,6 @@ class ISell(ITrade.ITrade):
             self.cancel_trade()
             return False
         
-        
-        preconfirm = self.preconfirm_scan_sale(products_giving=products_giving)
-        
-        #if trade was canceled or preconfirm failed
-        if not preconfirm:
-            self.cancel_trade()
-            return False
-        
         self.go_to_confirmation()
         
         #returns an object that holds all products sold if successful scan
@@ -360,8 +320,5 @@ class ISell(ITrade.ITrade):
             
         else:
             #if false returned, either customer canceled trade in conformation screen, or product check failed
-            cancel_button = self.app_region.exists(self._images.get_trade("cancel_button", "confirm"))
-            if cancel_button:
-                self.slow_click(cancel_button.getTarget())
-            self._slow_click(target=self._images.get_ok_button())
+            self.cancel_trade()
             return False

@@ -57,22 +57,19 @@ class IBuy(ITrade.ITrade):
             if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
             
-            for pack_abbr in pack_names_keys:
-            
-                max_buy = self.pack_inventory.get_max_stock(pack_abbr) - self.pack_inventory.get_stock(pack_abbr)
+            for packname in pack_names_keys:
+                print("searching for " + str(packname))
+                max_buy = self.pack_inventory.get_max_stock(packname) - self.pack_inventory.get_stock(packname)
                 if max_buy == 0:
                     continue
-                    
-                print("Looking for " + str(pack_abbr))
                 try:
-                    pack_text_filepath = self._images.get_pack_text(phase="preconfirm", packname=pack_abbr)
+                    pack_text_filepath = self._images.get_pack_text(phase="preconfirm", packname=packname)
                 except KeyError:
-                    try:
-                        pack_text_filepath = self._images.get_card_text(phase="preconfirm", cardname=pack_abbr)
-                    except KeyError:
-                        continue
-                if product_name_area.exists(Pattern(pack_text_filepath).exact()):
-                    print(pack_abbr + " found!")
+                    continue
+                    
+                print("Looking for " + str(pack_text_filepath))
+                if product_name_area.exists(Pattern(pack_text_filepath).similar(1)):
+                    print(packname + " found!")
                     
                     amount = 0
                     
@@ -101,14 +98,14 @@ class IBuy(ITrade.ITrade):
                         #if the amount of products would push the ticket total or products total over 75, then take just enough to get to 75 or closest
                         if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
                             amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
-                        if tickets_to_give + (self.pack_inventory.get_buy_price(pack_abbr) * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
-                            amount = int((settings["MAX_PRODUCTS_PER_TRADE"] - tickets_to_give) / self.pack_inventory.get_buy_price(pack_abbr))
+                        if tickets_to_give + (self.pack_inventory.get_buy_price(packname) * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
+                            amount = int((settings["MAX_PRODUCTS_PER_TRADE"] - tickets_to_give) / self.pack_inventory.get_buy_price(packname))
                         self.take_product(product_loc=product_name_area.getCenter(), quantity_to_take=amount)
 
-                        pack_abbr_index = pack_names_keys.index(pack_abbr)+1
+                        pack_abbr_index = pack_names_keys.index(packname)+1
                         pack_names_keys = pack_names_keys[pack_abbr_index:]
 
-                        pack_obj = Product.Product(name=pack_abbr, buy = self.pack_inventory.get_buy_price(pack_abbr), sell = self.pack_inventory.get_sell_price(pack_abbr), quantity=amount)
+                        pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
                         self.products_taken.append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
                         break
@@ -131,60 +128,57 @@ class IBuy(ITrade.ITrade):
             self.filter_product_version("regular")
         
         #will iterate once for filtering by rarity then by set
-        for filter, filter_settings in bulkcardbuying.iteritems():
+        for rarity, valid in bulkcardbuying["rarity"].iteritems():
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
             if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
             if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-                        
-            if filter == "rarity":
-                #will iterate once for each rarity that is set to "yes"
-                for rarity, valid in filter_settings.iteritems():
-                    if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
-                        break
-                    if valid == "yes":
-                        print("setting rarity to " + str(rarity))
-                        self.filter_product_rarity(rarity=rarity)
-                        #will iterate through all sets that are set to "yes"
-                        for set in bulkcardbuying["set"]:
-                            for setname, valid in set.iteritems():
+                    
+            if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
+                break
+            if valid == "yes":
+                print("setting rarity to " + str(rarity))
+                self.filter_product_rarity(rarity=rarity)
+                #will iterate through all sets that are set to "yes"
+                for set in bulkcardbuying["set"]:
+                    for setname, valid in set.iteritems():
+                        if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
+                            break
+                        if valid == "yes":
+                            self.filter_product_set(set=setname)
+                            
+                            found = True
+                            while found:
                                 if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                                     break
-                                if valid == "yes":
-                                    self.filter_product_set(set=setname)
+                                found = False
+                                for num in range(settings["BULK_BUY_OPTIONS"]["max_amount"]):
+                                    print("checking number " + str(num))
+                                    if num == 0:
+                                        continue
+                                    numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]))
                                     
-                                    found = True
-                                    while found:
-                                        if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
+                                    if numbersearch:
+                                        print(str(num) + " cards found, taking...")
+                                        amount = num
+                                        #if we've reached the maximum amount of products able to be traded at one time, then break
+                                        if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
+                                                amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
+                                        if tickets_to_give + (settings["BULK_BUY_OPTIONS"]["prices"][rarity] * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
+                                            amount = int((settings["MAX_PRODUCTS_PER_TRADE"]- tickets_to_give) / settings["BULK_BUY_OPTIONS"]["prices"][rarity])
+                                        
+                                        if amount <= 0:
                                             break
-                                        found = False
-                                        for num in range(settings["BULK_BUY_OPTIONS"]["max_amount"]):
-                                            print("checking number " + str(num))
-                                            if num == 0:
-                                                continue
-                                            numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]))
-                                            
-                                            if numbersearch:
-                                                print(str(num) + " cards found, taking...")
-                                                amount = num
-                                                #if we've reached the maximum amount of products able to be traded at one time, then break
-                                                if self.number_of_products_taken + amount > settings["MAX_PRODUCTS_PER_TRADE"]:
-                                                        amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
-                                                if tickets_to_give + (settings["BULK_BUY_OPTIONS"]["prices"][rarity] * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
-                                                    amount = int((settings["MAX_PRODUCTS_PER_TRADE"]- tickets_to_give) / settings["BULK_BUY_OPTIONS"]["prices"][rarity])
-                                                
-                                                if amount <= 0:
-                                                    break
-                                                self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity_to_take=num)
-                                                tickets_to_give += settings["BULK_BUY_OPTIONS"]["prices"][rarity] * num
-                                                card_obj = Product.Product(name=rarity + ", " + setname, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=amount)
-                                                self.products_taken.append(card_obj)
-                                                self.number_of_products_taken += num
-                                                print("running total for bulk cards = " + str(tickets_to_give))
-                                                found = True
-                                                wait(0.5)
-                                                break
+                                        self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity_to_take=num)
+                                        tickets_to_give += settings["BULK_BUY_OPTIONS"]["prices"][rarity] * num
+                                        card_obj = Product.Product(name=rarity + ", " + setname, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=amount)
+                                        self.products_taken.append(card_obj)
+                                        self.number_of_products_taken += num
+                                        print("running total for bulk cards = " + str(tickets_to_give))
+                                        found = True
+                                        wait(0.5)
+                                        break
         return tickets_to_give
     
     def search_for_specific_cards(self, tickets_to_give=0):
@@ -294,6 +288,7 @@ class IBuy(ITrade.ITrade):
             tickets_to_give = self.search_for_specific_cards(tickets_to_give=tickets_to_give)
 
         #if customer cancels trade
+        print("finished search for products with " + str(tickets_to_give))
         if tickets_to_give is False:
             return False
         else:
@@ -310,26 +305,19 @@ class IBuy(ITrade.ITrade):
                 return True
         
         return False
-                
-        
+
     def confirmation_scan(self, tickets_to_give):
         """will return number of tickets taken for transaction recording"""
         #verify confirm window by checking for confirm cancel buttons, then set regions relative to those buttons
         confirm_button = exists(self._images.get_trade("confirm_button", "confirm"), 1200)
         
         if not confirm_button:
-            self._slow_click(loc=Pattern(self._images.get_trade["cancel_button"]))
+            return False
         
         if isinstance(confirm_button, Match):
             print("confirmation scan, tickets_to_give = " + str(tickets_to_give))
             #keeps record of products found and their amount so far
             receiving_products_found = []
-            
-            card_names_list = self.card_inventory.get_card_name_list()
-            product_names_list = card_names_list[:]
-            product_names_list.extend(self.pack_inventory.get_sorted_pack_list())
-            product_names_list = sorted(product_names_list)
-            
             rarities_list = self._images.trade["confirm"]["rarity"]
             
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -348,9 +336,11 @@ class IBuy(ITrade.ITrade):
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5
             how_many_pixels_to_move_down = 0
+            print("x: " + str(receiving_name_region.x) + ", y: " + str(receiving_name_region.y) + ", w: " + str(receiving_name_region.w) + ", h: " + str(receiving_name_region.h))
             
             found=True
             if settings["CARD_BUYING"] == "search":
+                product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
                 while found:
                     found=False
                     #scan each product one by one for it's name and quantity
@@ -366,7 +356,7 @@ class IBuy(ITrade.ITrade):
                             else:
                                 current_product = "card"
                         print("searching for :" + str(product))
-                        
+                        print("x: " + str(receiving_name_region.x) + ", y: " + str(receiving_name_region.y) + ", w: " + str(receiving_name_region.w) + ", h: " + str(receiving_name_region.h))
                         if receiving_name_region.exists(Pattern(product).similar(0.8)):
                             print(product_abbr + " found!")
                             #if still at 0 after for loop, error raised
@@ -403,39 +393,63 @@ class IBuy(ITrade.ITrade):
                             receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
                             break
             else:
+                pack_names_list = self.pack_inventory.get_sorted_pack_list()
+                card_names_list = self.card_inventory.get_card_name_list()
                 #scan the rarity and the amount to calculate total price
                 while found:
+                    print("scanning region: " + str(receiving_name_region.getX()) + ", " + str(receiving_name_region.getY()) + ", " + str(receiving_name_region.getW()) + ", " + str(receiving_name_region.getH()))
                     found = False
-                    for rarity, file in rarities_list.iteritems():
-                        print("Looking for " + str(file))
-                        print("hovering at " + str(receiving_rarity_region.x) + ", " + str(receiving_rarity_region.y))
-                        if receiving_rarity_region.exists(Pattern(file).similar(0.7)):
-                            print("found a " + str(rarity))
-                            
-                            for number in range(len(numbers)):
-                                if number == 0:
-                                    continue
-                                if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
-                                    amount = number
+                    hover(Location(receiving_name_region.getX()-10, receiving_name_region.getY()))
+                    #number of pixels to move down after checking a product slot
+                    if how_many_pixels_to_move_down != 17:
+                        how_many_pixels_to_move_down = 17
+                    else:
+                        how_many_pixels_to_move_down =  18
+                        #check if there is a card in the product slot
+                    if receiving_rarity_region.exists(self._images.trade["confirm"]["rarity"]["none"]):
+                        print("None found")
+                        for pack in pack_names_list:
+                            print("checking for pack: " + pack)
+                            #check if it's a booster pack
+                            if receiving_name_region.exists(Pattern(self._images.get_pack_text(phase="confirm", packname=pack)).similar(0.9)):
+                                for number in range(len(numbers)):
+                                    if number == 0:
+                                        continue
+                                    if receiving_number_region.exists(Pattern(numbers[number]).similar(0.9)):
+                                        found = True
+                                        print("found " + str(number) + " product")
+                                        amount = number
+                                        break
+                                print("found " + str(self._images.get_pack_text(phase="confirm", packname=pack)))
+                                product_obj = Product.Product(name=pack, buy=self.pack_inventory.get_buy_price(pack), sell=self.pack_inventory.get_sell_price(pack), quantity=number)
+                                receiving_products_found.append(product_obj)
+                                new_index = pack_names_list.index(pack)+1
+                                pack_names_list = pack_names_list[new_index:]
+                                break
+                    else:
+                        print("None is not found")
+                        #check to see if it's a card.  cards are bought in bulk, so name isn't scanned, just rarity
+                        for rarity, valid in bulkcardbuying["rarity"].items():
+                            if valid == "yes":
+                                print("checking for card of rarity: " + rarity)
+                                if receiving_rarity_region.exists(Pattern(self._images.trade["confirm"]["rarity"][rarity]).similar(1)):
+                                    for number in range(len(numbers)):
+                                        if number == 0:
+                                            continue
+                                        if receiving_number_region.exists(Pattern(numbers[number]).similar(0.9)):
+                                            found = True
+                                            print("found " + str(number) + " product")
+                                            amount = number
+                                            break
+                                    print("found a " + str(self._images.trade["confirm"]["rarity"][rarity]))
+                                    product_obj = Product.Product(name=rarity, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=number)
+                                    receiving_products_found.append(product_obj)
                                     break
 
-                            product_obj = Product.Product(name=str(rarity + "s"), buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=amount)
-                            receiving_products_found.append(product_obj)
+                    receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
+                    receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
+                    receiving_rarity_region = Region(receiving_rarity_region.getX(), receiving_rarity_region.getY()+how_many_pixels_to_move_down, receiving_rarity_region.getW(), receiving_rarity_region.getH())
 
-                            if amount == 0:
-                                raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
-                            found = True
-
-                            if how_many_pixels_to_move_down != 17:
-                                how_many_pixels_to_move_down = 17
-                            else:
-                                how_many_pixels_to_move_down = 18
-                            receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
-                            receiving_rarity_region = Region(receiving_rarity_region.getX(), receiving_rarity_region.getY()+how_many_pixels_to_move_down, receiving_rarity_region.getW(), receiving_rarity_region.getH())
-                            
-                            break
-            
-            
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
             for product in receiving_products_found:
@@ -445,11 +459,13 @@ class IBuy(ITrade.ITrade):
             
             if expected_number == 0 or not expected_number == tickets_to_give:
                 return False
-
+            
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
+            
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if giving_name_region.exists(ticket_text_image):
-                expected_number_image = Pattern(self._images.get_number(number=int(expected_number), category="trade", phase="confirm")).similar(0.7)
+                expected_number_image = Pattern(self._images.get_number(number=int(expected_number), category="trade", phase="confirm")).similar(0.9)
+                print(str(expected_number_image))
                 if giving_number_region.exists(expected_number_image):
                     return receiving_products_found
                 else:
@@ -468,11 +484,9 @@ class IBuy(ITrade.ITrade):
             
             running_total = self.search_for_products()
             
+            print("running total is " + str(running_total))
             if running_total == 0 or not running_total:
-                cancel_button = self.app_region.exists(self._images.get_trade("cancel_button"))
-                if cancel_button:
-                    self.slow_click(loc=cancel_button.getTarget())
-                self._slow_click(target=self._images.get_ok_button())
+                self.cancel_trade()
                 return False
             
             total_tickets_notice = 'Please take %i tickets.' % running_total
@@ -480,7 +494,7 @@ class IBuy(ITrade.ITrade):
             
             #wait for the customer to get the tickets, then click confirm
             if not self.preconfirm_scan_purchase(running_total): 
-                self._slow_click(loc=Pattern(self._images.get_trade["cancel_button"]))
+                self.cancel_trade()
             
             self.go_to_confirmation()
             
@@ -498,8 +512,5 @@ class IBuy(ITrade.ITrade):
                 return products_bought
                 
             else:
-                cancel_button = self.app_region.exists(self._images.get_trade("cancel_button", "confirm"))
-                if cancel_button:
-                    self._slow_click(loc=cancel_button.getTarget())
-                self._slow_click(target=self._images.get_ok_button())
+                self.cancel_trade()
                 return False
