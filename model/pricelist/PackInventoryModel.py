@@ -1,7 +1,7 @@
 from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
-import sys
+import sys, copy
 sys.path.append(path_to_bot + "model/pricelist")
 import InventoryAdapter
 
@@ -29,14 +29,7 @@ class PackInventoryModel(object):
         return self.inventory[pack_abbr]["max"]
     
     def get_sorted_pack_list(self):
-        """this is a list of all pack to abbreviations in alphabetical order according to 
-        their full names(which is how they are sorted by interface) which the bot should buy/sell"""
-        all_packs = ["alara reborn", "shards of alara", "conflux", "eighth edition", "magic 2011", "magic 2010", "masters edition",
-                               "masters edition 2", "masters edition 3", "masters edition 4", "mirrodin besieged", "ninth edition", "rise of the eldrazi",
-                               "scars of mirrodin", "seventh edition", "tenth edition", "worldwake", "zendikar"]
-        packs_to_buy_sell = [abbr for abbr in all_packs if abbr in self.inventory.keys()]
-        packs_to_buy_sell.sort()
-        print(all_packs)
-        print(self.inventory.keys())
-        
-        return packs_to_buy_sell
+        """this is a list of all packs found in pricelist text file"""
+        packs_inventory = [pack for pack in self.inventory]
+        packs_inventory.sort()
+        return packs_inventory

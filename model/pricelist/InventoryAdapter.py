@@ -27,7 +27,7 @@ class InventoryAdapter(object):
             single_product = newline.split("|")
             
             try:
-                    product_name = str(single_product[0]).strip()
+                    product_name = str(single_product[0].lower()).strip()
                     in_stock = int(single_product[3].strip())
                     desired_stock = int(single_product[4].strip())
                     sell_price = float(single_product[1].strip())
@@ -39,6 +39,6 @@ class InventoryAdapter(object):
                 sys.exit("A value is missing for " + single_product[0] + " in inventory information in response to am inventory request")
                 
             else:
-                pricelist_dict[product_name.lower()] = {"sell": sell_price, "buy": buy_price, "stock": in_stock, "max": desired_stock}
+                pricelist_dict[product_name] = {"sell": sell_price, "buy": buy_price, "stock": in_stock, "max": desired_stock}
         
         return pricelist_dict

@@ -50,9 +50,9 @@ class Interface(object):
         else:
             raise ErrorHandler("Loc is not a location object")
         if(button == "Right"):
-            mouseDown(Button.RIGHT); wait(0.2)
+            mouseDown(Button.RIGHT); wait(0.3)
         else:
-            mouseDown(Button.LEFT); wait(0.2)
+            mouseDown(Button.LEFT); wait(0.3)
         if(button == "Right"):
             mouseUp(Button.RIGHT)
         else:

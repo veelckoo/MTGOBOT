@@ -3,7 +3,7 @@ path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 exec(open(path_to_bot + "ini.py", "rb").read())
 
-import sys
+import sys, math
 sys.path.append(path_to_bot + "model/pricelist")
 import PackInventoryModel
 import CardInventoryModel
@@ -347,14 +347,14 @@ class IBuy(ITrade.ITrade):
                     for product_abbr in product_names_list:
                         try:
                             product = self._images.get_pack_text(phase="confirm", packname=product_abbr)
-                            current_product = "pack"
+                            product_type = "pack"
                         except KeyError:
                             try:
                                 product = self._images.get_card_text(phase="confirm", cardname=product_abbr)
                             except KeyError:
                                 continue
                             else:
-                                current_product = "card"
+                                product_type = "card"
                         print("searching for :" + str(product))
                         print("x: " + str(receiving_name_region.x) + ", y: " + str(receiving_name_region.y) + ", w: " + str(receiving_name_region.w) + ", h: " + str(receiving_name_region.h))
                         if receiving_name_region.exists(Pattern(product).similar(0.8)):
@@ -375,12 +375,14 @@ class IBuy(ITrade.ITrade):
                                     product_names_list = product_names_list[product_index:]
                                     break
 
-                            if current_product == "pack":
+                            if product_type == "pack":
                                 product_obj = Product.Product(name=product_abbr, buy=self.pack_inventory.get_buy_price(product_abbr), sell=self.pack_inventory.get_sell_price(product_abbr), quantity=amount)
-                            elif current_product == "card":
+                            elif product_type == "card":
                                 product_obj = Product.Product(name=product_abbr, buy=self.card_inventory.get_buy_price(product_abbr), sell=self.card_inventory.get_sell_price(product_abbr), quantity=amount)
+                            else:
+                                raise ErrorHandler("Product type has not been set, but product detected")
                             receiving_products_found.append(product_obj)
-
+                            
                             if amount == 0:
                                 raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
                             found=True
@@ -453,10 +455,10 @@ class IBuy(ITrade.ITrade):
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
             for product in receiving_products_found:
-                expected_number += product["quantity"] * product["buy"]
+                expected_number += math.ceil(product["quantity"] * product["buy"])
 
             print("expected number of tickets " + str(expected_number))
-            
+
             if expected_number == 0 or not expected_number == tickets_to_give:
                 return False
             

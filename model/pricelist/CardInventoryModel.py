@@ -1,7 +1,7 @@
 from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
-import sys
+import sys, copy
 sys.path.append(path_to_bot + "model/pricelist")
 import InventoryAdapter
 

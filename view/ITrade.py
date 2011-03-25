@@ -98,16 +98,23 @@ class ITrade(Interface.Interface):
         while quantity_to_take > 0:
             wait(0.2)
             if quantity_to_take < 10:
-                doubleClick(product_loc)
-                quantity_to_take -= 1
+                try:
+                    doubleClick(product_loc)
+                except:
+                    return False
+                else:
+                    quantity_to_take -= 1
             else:
                 self._slow_click(loc=product_loc, button="Right")
                 if quantity_to_take >= 32:
-                    self._slow_click(self._images.get_amount(32))
+                    if not self._slow_click(self._images.get_amount(32)):
+                        return False
                     quantity_to_take -= 32
                 elif quantity_to_take >= 10:
-                    self._slow_click(self._images.get_amount(10))
+                    if not self._slow_click(self._images.get_amount(10)):
+                        return False
                     quantity_to_take -= 10
+        return True
 
     def filter_product_rarity(self, rarity):
         #filter product by rarity, only applies to cards
