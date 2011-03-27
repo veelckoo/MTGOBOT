@@ -47,11 +47,14 @@ class ISell(ITrade.ITrade):
         #scan_region will be used as the region to scan for the packs and number of packs
         #using the giving window as region, each product row is scanned for a product name and quantity
         #NOTE: A single area reserved for the text of a single product is a 192px(width) by 16/17px(height) area, with a 1px buffer in between each string
-        scan_region = Region(self.giving_window_region.getX()+2, self.giving_window_region.getY()+43, 196, 17)
+        scan_region = Region(self.giving_window_region.getX(), self.giving_window_region.getY()+43, 198, 17)
         #keep while loop as long as there is still a pack to be scanned
         found = True
         while found:
-            found = None
+            found = False
+            if scan_region.exists(self._images.trade["empty"]):
+                print("blank line found")
+                break
             for product_name in product_names_list:
                 #if the product name to check is not a pack name, it must be a card name, if not then skip the product
                 #because there is no png file for the product
@@ -92,8 +95,10 @@ class ISell(ITrade.ITrade):
 
                     wheel(scroll_bar_loc, WHEEL_DOWN, 2)
 
-                if found == True:
+                if found:
                     break
+                else:
+                    raise ErrorHandler("Unrecognized card found")
 
             #if first scan area was already set, then relative distance from last region
             #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
@@ -125,10 +130,10 @@ class ISell(ITrade.ITrade):
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
             receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+42, 34, 14)
             #height for each product is 13px, and 4px buffer vertically between each product slot
-            receiving_name_region = Region(confirm_button.getX()-254, confirm_button.getY()+42, 160, 14)
+            receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+42, 163, 14)
             #confirm products giving
             giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 14)
-            giving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+391, 160, 14)
+            giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 14)
             #this is a variable that will hold the number of pixels to move down after scanning each area
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5
@@ -136,6 +141,8 @@ class ISell(ITrade.ITrade):
             
             found = True
             while found:
+                if giving_name_region.exists(self._images.trade["empty"]):
+                    break
                 print("scanning region: " + str(giving_name_region.x) + ", " + str(giving_name_region.y) + ", " + str(giving_name_region.w) + ", " + str(giving_name_region.h))
                 hover(Location(giving_number_region.getX(), giving_number_region.getY()))
                 found=False
@@ -186,7 +193,10 @@ class ISell(ITrade.ITrade):
                             how_many_pixels_to_move_down =  18
                         giving_number_region = Region(giving_number_region.getX(), giving_number_region.getY()+how_many_pixels_to_move_down, giving_number_region.getW(), giving_number_region.getH())
                         giving_name_region = Region(giving_name_region.getX(), giving_name_region.getY()+how_many_pixels_to_move_down, giving_name_region.getW(), giving_name_region.getH())
+                    if found:
                         break
+                    else:
+                        raise ErrorHandler("Unrecognized card found")
             
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0

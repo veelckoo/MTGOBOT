@@ -50,6 +50,8 @@ class IBuy(ITrade.ITrade):
         found = True
         
         while found:
+            if product_name_area.exists(self._images.trade["empty"]):
+                break
             found = False
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
             if tickets_to_give  >= settings["MAX_PRODUCTS_PER_TRADE"]:
@@ -108,7 +110,8 @@ class IBuy(ITrade.ITrade):
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
                         self.products_taken.append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
-                        break
+                    if not found:
+                        raise ErrorHandler("Pack scanned, but no png for it")
                     else:
                         break
 
@@ -150,6 +153,8 @@ class IBuy(ITrade.ITrade):
                             
                             found = True
                             while found:
+                                if self.topmost_product_quantity_area.exists(self._images.trade["empty"]):
+                                    break
                                 if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                                     break
                                 found = False
@@ -217,7 +222,6 @@ class IBuy(ITrade.ITrade):
             wait(2)
             cardsearch = self.topmost_product_name_area.exists(Pattern(self._images.get_card_text(cardname=cardname, phase="preconfirm")).similar(0.9))
             if cardsearch:
-            
                 #sweeps have to be done twice in case there is a foil version AND a regular version of card
                 for x in range(number_of_searches):
                     print(cardname + " has been found!")
@@ -325,13 +329,13 @@ class IBuy(ITrade.ITrade):
             #these regions correspond to a single row from each column
             #height for each product is 13px, and 4px buffer vertically between each product slot
             receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+41, 34, 17)
-            receiving_name_region = Region(confirm_button.getX()-254, confirm_button.getY()+41, 160, 17)
+            receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+41, 163, 17)
             receiving_rarity_region = Region(confirm_button.getX()+340, confirm_button.getY()+41, 61, 17)
             receiving_set_region = Region(confirm_button.getX()+291, confirm_button.getY()+41, 45, 17)
             
             #confirm products giving
             giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 17)
-            giving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+391, 160, 17)
+            giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 17)
             #this is a variable that will hold the number of pixels to move down after scanning each area
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5
@@ -342,6 +346,8 @@ class IBuy(ITrade.ITrade):
             if settings["CARD_BUYING"] == "search":
                 product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
                 while found:
+                    if receiving_name_region.exists(self._images.trade["empty"]):
+                        break
                     found=False
                     #scan each product one by one for it's name and quantity
                     for product_abbr in product_names_list:
@@ -393,6 +399,9 @@ class IBuy(ITrade.ITrade):
                                 how_many_pixels_to_move_down =  18
                             receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                             receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
+                        if not found:
+                            raise ErrorHandler("Product scanned, but no png file found for it")
+                        else:
                             break
             else:
                 pack_names_list = self.pack_inventory.get_sorted_pack_list()
@@ -400,6 +409,8 @@ class IBuy(ITrade.ITrade):
                 #scan the rarity and the amount to calculate total price
                 while found:
                     print("scanning region: " + str(receiving_name_region.getX()) + ", " + str(receiving_name_region.getY()) + ", " + str(receiving_name_region.getW()) + ", " + str(receiving_name_region.getH()))
+                    if receiving_name_region.exists(self._images.trade["empty"]):
+                        break
                     found = False
                     hover(Location(receiving_name_region.getX()-10, receiving_name_region.getY()))
                     #number of pixels to move down after checking a product slot
@@ -427,7 +438,10 @@ class IBuy(ITrade.ITrade):
                                 receiving_products_found.append(product_obj)
                                 new_index = pack_names_list.index(pack)+1
                                 pack_names_list = pack_names_list[new_index:]
-                                break
+                                if not found:
+                                    raise ErrorHandler("Pack found but no png found for it")
+                                else:
+                                    break
                     else:
                         print("None is not found")
                         #check to see if it's a card.  cards are bought in bulk, so name isn't scanned, just rarity
@@ -446,7 +460,10 @@ class IBuy(ITrade.ITrade):
                                     print("found a " + str(self._images.trade["confirm"]["rarity"][rarity]))
                                     product_obj = Product.Product(name=rarity, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=number)
                                     receiving_products_found.append(product_obj)
-                                    break
+                                    if not found:
+                                        raise ErrorHandler("Bulk card found but no valid rarity found")
+                                    else:
+                                        break
 
                     receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                     receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
@@ -472,6 +489,8 @@ class IBuy(ITrade.ITrade):
                     return receiving_products_found
                 else:
                     return False
+            else:
+                return False
             
     def complete_purchase(self, method="A"):
         """Will return the transactions details to be recorded if successul
