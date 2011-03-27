@@ -1,3 +1,12 @@
+***************
+Message: ******
+***************
+I've just found out about the anouncement about the new interface update that Wizards will be putting out.  So I don't waste any time and effort, I will be be halting any development on this bot until there is more information about when the update is coming or what the changes will be, especially to trade interactions.  
+Which is not as bad as it sounds because I have finished all the core functions for the bot.  It will buy and sell cards and packs.  It will buy cards in bulk(pay certain price for all cards of certain rarity) or searching for cards and buying according to pricelist.
+The only thing missing is just to add some png images for the name of cards I have missed.  It's a time consuming task.  If you want to help me out, check out the MTGO BOT/Images/product/cards/text/preconfirm or MTGO BOT/Images/product/cards/text/confirm for examples.  All that must be done is just to take a screenshot of the name of the card, and crop it down.  Some cards look different in the pre confirm window than they do in the final confirm because they are made smaller to fit the window.
+
+I am going to be working on developing a module for the bot that I was planning to anyways.  It is a web crawler that I plan to use to data mine all the popular websites for prices(mtgotraders.com, cardshark.com, etc) and storing the price information in a file that the bot can use to make it's pricelist.  With this, the bot could have a pricelist that would be updated hourly.
+
 *****************
 Latest News:*****
 *****************
