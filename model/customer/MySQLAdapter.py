@@ -1,6 +1,6 @@
 """Handles writing and reading customer records to and from MySQL Database"""
 from sikuli.Sikuli import *
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 from sys import *
 

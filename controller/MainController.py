@@ -1,6 +1,6 @@
 from sikuli.Sikuli import *
 
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 exec(open(path_to_bot + "ini.py", "rb").read())
 
@@ -12,7 +12,9 @@ sys.path.append(path_to_bot + "model")
 sys.path.append(path_to_bot + "controller")
 sys.path.append(path_to_bot + "view")
 import ErrorHandler
-import Session
+
+sys.path.append(path_to_bot + "model/customer")
+import CustomerDAL
 
 import ITrade
 import ISell
@@ -75,49 +77,43 @@ class MainController(object):
                     mode=settings["DEFAULTMODE"]
                 
                 self.set_mode(mode=mode)
-                #open a session to record data to
-                session = Session.Session()
                 
                 #if done too quickly, the customers name isn't in place yet
                 wait(4)
                 customer_name = self.Itrade.get_customer_name()
+                customer_model = CustomerDAL.CustomerDAL(adapter=settings["RECORD_OUTPUT_FORMAT"], customer_name=customer_name)
                 
                 #enter selling mode
                 if self.get_mode() == "sell":
-                    self.Ichat.type_msg(self.selling_greeting)
+                    self.Ichat.type_msg(self.selling_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Isell.set_windows()
-                    products_sold = self.Isell.complete_sale()
+                    products_sold = self.Isell.complete_sale(customer_credit=customer_model.read_credits())
                     
                     receipt = None
                     if products_sold:
                         receipt = {"sold":{}, "bought":{}}
                         for product in products_sold:
-                            receipt["sold"][product["name"]] = product["quantity"]
-                        receipt["customer"] = customer_name
+                            customer_model.write_transaction(type="sale", product=product["name"], quantity=product["quantity"])
+                        customer_model.write_credits((1-(products_bought["total_tickets"]%1)))
+                        customer_model.write_transaction_date(time=datetime.now())
+
                     
                 #enter buying mode
                 elif self.get_mode() == "buy":
-                    self.Ichat.type_msg(self.buying_greeting)
+                    self.Ichat.type_msg(self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Ibuy.set_windows()
                     #take packs from the customer
-                    products_bought = self.Ibuy.complete_purchase()
+                    products_bought = self.Ibuy.complete_purchase(customer_credit=customer_model.read_credits())
                     
                     receipt = None
                     if products_bought:
+                        total_sale = 0
                         receipt = {"sold":{}, "bought":{}}
                         for product in products_bought:
-                            receipt["bought"][product["name"]] = product["quantity"]
-                        receipt["customer"] = customer_name
-                
-                if receipt is not None:
-                    session.set_transaction(receipt)
-                    session.set_time(datetime.now())
-                    session.record()
-                    del(session)
-                    del(customer_name)
-                else:
-                    #record trade failure
-                    pass
+                            customer_model.write_transaction(type="purchase", product=product["name"], quantity=product["quantity"])
+                        customer_model.write_credits(products_bought["total_tickets"] % 1)
+                        customer_model.write_transaction_date(time=datetime.now())
+                    
                     
         self.trade_mode()
         

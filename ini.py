@@ -3,6 +3,8 @@ from sikuli.Sikuli import *
 #this object will hold all global settings for the application
 #ERRORHANDLERAPP = How the app will output errors, possible values: Notepad
 
+#RECORD_OUTPUT_FORMAT = how you want your customer records to be recorded, valid strings: "text", "mysql", "excel"
+
 #USERNAME = Your Magic Online username
 
 #PASSWORD = Your Magic Online password
@@ -16,6 +18,7 @@ from sikuli.Sikuli import *
 #are many cards listed in the card_buy pricelist, meaning there are many cards you would buy.  Valid strings: "bulk", "search"
 
 settings = {"ERRORHANDLERAPP":"Notepad", 
+            "RECORD_OUTPUT_FORMAT":"text",
             "LOGIN_WAIT":45, 
             "USERNAME": "yourmagiconlineusername", 
             "PASSWORD":"yourpasswordhere", 

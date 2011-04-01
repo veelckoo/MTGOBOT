@@ -1,7 +1,6 @@
 from sikuli.Sikuli import *
 
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
-
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 class ImagesModel(object):
     #stores the all images to be used by bot into tuples

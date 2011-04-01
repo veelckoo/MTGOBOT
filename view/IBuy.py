@@ -1,5 +1,5 @@
 from sikuli.Sikuli import *
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 exec(open(path_to_bot + "ini.py", "rb").read())
 
@@ -25,7 +25,7 @@ class IBuy(ITrade.ITrade):
     
     
     
-    def search_for_packs(self, tickets_to_give=0):
+    def search_for_packs(self, tickets_to_give=0.0):
         #will take all packs found in the customers collection and in buy list
         self.filter_product_version(version="packs_tickets")
         
@@ -110,17 +110,17 @@ class IBuy(ITrade.ITrade):
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
                         self.products_taken.append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
-                    if not found:
-                        raise ErrorHandler("Pack scanned, but no png for it")
-                    else:
-                        break
+                if not found:
+                    raise ErrorHandler("Pack scanned, but no png for it")
+                else:
+                    break
 
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
         else:
-            return tickets_to_give
+            return float(tickets_to_give)
 
-    def search_for_bulk_cards(self, tickets_to_give=0):
+    def search_for_bulk_cards(self, tickets_to_give=0.0):
         #this will buy all rares, mythics, uncommons, and/or commons that the customer has available
         
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -184,9 +184,9 @@ class IBuy(ITrade.ITrade):
                                         found = True
                                         wait(0.5)
                                         break
-        return tickets_to_give
+        return float(tickets_to_give)
     
-    def search_for_specific_cards(self, tickets_to_give=0):
+    def search_for_specific_cards(self, tickets_to_give=0.0):
         #this will search for specific cards on the buy list to buy
         if settings["BUY_FOIL"] == "yes":
             self.filter_product_version("all_versions")
@@ -262,7 +262,7 @@ class IBuy(ITrade.ITrade):
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
         else:
-            return tickets_to_give
+            return float(tickets_to_give)
     
     def search_for_products(self):
         #confirm button will be used for relative positioning the regions for products scanning in preconfirm stage
@@ -278,13 +278,12 @@ class IBuy(ITrade.ITrade):
         self._slow_click(loc=self.name_sort_button_location)
         
         #variables to hold amount of tickets that should be given
-        tickets_to_give = 0
+        tickets_to_give = 0.0
         #list that holds all products that were taken, for post transaction recording purposes
         self.products_taken = []
         self.number_of_products_taken = 0
         
-        #DEBUG
-        tickets_to_give = self.search_for_packs(tickets_to_give=0)
+        tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
         
         if settings["CARD_BUYING"] == "bulk":
             tickets_to_give = self.search_for_bulk_cards(tickets_to_give=tickets_to_give)
@@ -305,7 +304,7 @@ class IBuy(ITrade.ITrade):
         numbers_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
         if giving_name_region.exists(self._images.get_ticket_text(), 120):
-            if giving_number_region.exists(numbers_list[int(tickets_to_give)], 180):
+            if giving_number_region.exists(self._images.get_number(number=int(tickets_to_give), category="trade", phase="preconfirm"), 180 ):
                 return True
         
         return False
@@ -399,10 +398,10 @@ class IBuy(ITrade.ITrade):
                                 how_many_pixels_to_move_down =  18
                             receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                             receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
-                        if not found:
-                            raise ErrorHandler("Product scanned, but no png file found for it")
-                        else:
-                            break
+                    if not found:
+                        raise ErrorHandler("Product scanned, but no png file found for it")
+                    else:
+                        break
             else:
                 pack_names_list = self.pack_inventory.get_sorted_pack_list()
                 card_names_list = self.card_inventory.get_card_name_list()
@@ -438,10 +437,10 @@ class IBuy(ITrade.ITrade):
                                 receiving_products_found.append(product_obj)
                                 new_index = pack_names_list.index(pack)+1
                                 pack_names_list = pack_names_list[new_index:]
-                                if not found:
-                                    raise ErrorHandler("Pack found but no png found for it")
-                                else:
-                                    break
+                        if not found:
+                            raise ErrorHandler("Pack found but no png found for it")
+                        else:
+                            break
                     else:
                         print("None is not found")
                         #check to see if it's a card.  cards are bought in bulk, so name isn't scanned, just rarity
@@ -460,10 +459,10 @@ class IBuy(ITrade.ITrade):
                                     print("found a " + str(self._images.trade["confirm"]["rarity"][rarity]))
                                     product_obj = Product.Product(name=rarity, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=number)
                                     receiving_products_found.append(product_obj)
-                                    if not found:
-                                        raise ErrorHandler("Bulk card found but no valid rarity found")
-                                    else:
-                                        break
+                        if not found:
+                            raise ErrorHandler("Bulk card found but no valid rarity found")
+                        else:
+                            break
 
                     receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                     receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
@@ -472,7 +471,7 @@ class IBuy(ITrade.ITrade):
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
             for product in receiving_products_found:
-                expected_number += math.ceil(product["quantity"] * product["buy"])
+                expected_number += int(product["quantity"] * product["buy"])
 
             print("expected number of tickets " + str(expected_number))
 
@@ -492,46 +491,47 @@ class IBuy(ITrade.ITrade):
             else:
                 return False
             
-    def complete_purchase(self, method="A"):
+    def complete_purchase(self, customer_credit=0):
         """Will return the transactions details to be recorded if successul
         else will return False"""
+    
+        #take the products first, then tell customer how many tickets to take
+        #requires IChat interface to be passed to tell customers how many tickets to take
         
-        if method == "A":
-            #take the products first, then tell customer how many tickets to take
-            #requires IChat interface to be passed to tell customers how many tickets to take
-            
-            #switch to list view in the collection window
-            self._slow_click(target=self._images.get_trade("list_view_collection_window"))
-            
-            running_total = self.search_for_products()
-            
-            print("running total is " + str(running_total))
-            if running_total == 0 or not running_total:
-                self.cancel_trade()
-                return False
-            
-            total_tickets_notice = 'Please take %i tickets.' % running_total
-            self.Ichat.type_msg(total_tickets_notice)
-            
-            #wait for the customer to get the tickets, then click confirm
-            if not self.preconfirm_scan_purchase(running_total): 
-                self.cancel_trade()
-            
-            self.go_to_confirmation()
-            
-            #run a final confirmation scan to check the products and tickets taken
-            products_bought = self.confirmation_scan(tickets_to_give=running_total)
-            
-            self.Ichat.close_current_chat()
+        #switch to list view in the collection window
+        self._slow_click(target=self._images.get_trade("list_view_collection_window"))
         
-            if products_bought:
-                
-                self._slow_click(target=self._images.get_trade("confirm_button", "confirm"))
-                wait(Pattern(self._images.get_ok_button()), 600)
-                self._slow_click(target=self._images.get_ok_button())
+        running_total = self.search_for_products()
+        running_total -= customer_credit
+        
+        print("running total is " + str(running_total))
+        if running_total == 0 or not running_total:
+            self.cancel_trade()
+            return False
+        
+        total_tickets_notice = 'Please take %i tickets.' % running_total
+        self.Ichat.type_msg(total_tickets_notice)
+        
+        #wait for the customer to get the tickets, then click confirm
+        if not self.preconfirm_scan_purchase(running_total): 
+            self.cancel_trade()
+        
+        self.go_to_confirmation()
+        
+        #run a final confirmation scan to check the products and tickets taken
+        products_bought = self.confirmation_scan(tickets_to_give=running_total)
+        
+        self.Ichat.close_current_chat()
+    
+        if products_bought:
             
-                return products_bought
-                
-            else:
-                self.cancel_trade()
-                return False
+            self._slow_click(target=self._images.get_trade("confirm_button", "confirm"))
+            wait(Pattern(self._images.get_ok_button()), 600)
+            self._slow_click(target=self._images.get_ok_button())
+            products_bought["total_tickets"] = running_total
+            
+            return products_bought
+            
+        else:
+            self.cancel_trade()
+            return False

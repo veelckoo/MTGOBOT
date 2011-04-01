@@ -5,3 +5,5 @@ class Product(object):
     
     def __getitem__(self, index):
         return self.__stats[index]
+    def __setitem__(self, index, value):
+        self.__stats[index] = value
