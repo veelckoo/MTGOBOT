@@ -1,5 +1,5 @@
 from sikuli.Sikuli import *
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 import sys, copy
 sys.path.append(path_to_bot + "model/pricelist")
@@ -9,14 +9,15 @@ import InventoryAdapter
 class PackInventoryModel(object):
     #DAL layer for pricelist for buying and selling packs
     def __init__(self):
-        inventory_adapter = InventoryAdapter.InventoryAdapter()
-        self.inventory = inventory_adapter.get_inventory(product="packs")
-        
+        self.inventory_adapter = InventoryAdapter.InventoryAdapter()
+        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+    
+    
     #set prices is to be done in gui bot settings prior to transaction
     def set_buy_price(self, name, price):
         self.inventory[name.upper()]["buy"] = price
     def set_sell_price(self, name, price):
-        self.inventiry[name.upper()]["sell"] = price
+        self.inventory[name.upper()]["sell"] = price
     
     def get_buy_price(self, name):
         return self.inventory[name]["buy"]
@@ -25,6 +26,9 @@ class PackInventoryModel(object):
     
     def get_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["stock"]
+    def update_stock(self, pack):
+        self.inventory_adapter.set_stock(product=pack)
+        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
     def get_max_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["max"]
     

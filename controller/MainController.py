@@ -16,6 +16,10 @@ import ErrorHandler
 sys.path.append(path_to_bot + "model/customer")
 import CustomerDAL
 
+sys.path.append(path_to_bot + "model/pricelist")
+import CardInventoryModel
+import PackInventoryModel
+
 import ITrade
 import ISell
 import IBuy
@@ -36,6 +40,8 @@ class MainController(object):
         self.Isignin = ISignIn.ISignIn()
         self.Iclassified = IClassified.IClassified()
         self.Ichat = IChat.IChat()
+        self.pack_inventory = PackInventoryModel.PackInventoryModel()
+        self.card_inventory = CardInventoryModel.CardInventoryModel()
         self.selling_greeting = "Entering selling mode.  When you are finished taking products, please type the word \"DONE\" in all lowercase, and click confirm."
         self.buying_greeting = "Entering buying mode.  I will search your collection for products to buy.  This may take several minutes depending how much you have available.  Please wait..."
         
@@ -85,6 +91,7 @@ class MainController(object):
                 
                 #enter selling mode
                 if self.get_mode() == "sell":
+                    self.Isell.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
                     self.Ichat.type_msg(self.selling_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Isell.set_windows()
                     products_sold = self.Isell.complete_sale(customer_credit=customer_model.read_credits())
@@ -92,14 +99,16 @@ class MainController(object):
                     receipt = None
                     if products_sold:
                         receipt = {"sold":{}, "bought":{}}
-                        for product in products_sold:
-                            customer_model.write_transaction(type="sale", product=product["name"], quantity=product["quantity"])
+                        for product_type in products_sold:
+                            for product in product_type:
+                                customer_model.write_transaction(type="sale", product=product["name"], quantity=product["quantity"])
                         customer_model.write_credits((1-(products_bought["total_tickets"]%1)))
                         customer_model.write_transaction_date(time=datetime.now())
 
                     
                 #enter buying mode
                 elif self.get_mode() == "buy":
+                    self.IBuy.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
                     self.Ichat.type_msg(self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Ibuy.set_windows()
                     #take packs from the customer
@@ -109,8 +118,9 @@ class MainController(object):
                     if products_bought:
                         total_sale = 0
                         receipt = {"sold":{}, "bought":{}}
-                        for product in products_bought:
-                            customer_model.write_transaction(type="purchase", product=product["name"], quantity=product["quantity"])
+                        for product_type in products_bought:
+                            for product in product_type:
+                                customer_model.write_transaction(type="purchase", product=product["name"], quantity=product["quantity"])
                         customer_model.write_credits(products_bought["total_tickets"] % 1)
                         customer_model.write_transaction_date(time=datetime.now())
                     
@@ -123,9 +133,29 @@ class MainController(object):
         if(BotSetting.getSetting("NETWORK")):
             pass
             
-    def maintenance_mode(self):
-        #puts the bot maintanence mode to check inventory
-        pass
+    def maintenance_mode(self, products=None):
+        if not self.pack_inventory and not self.card_inventory:
+            #if called without specifying products, 
+            #puts the bot maintanence mode to check build inventory model
+            self.IMaintenance.refresh_inventory()
+            inventory = self.IMaintenance.get_inventory()
+            self.pack_inventory.update_stock(inventory["packs"])
+            self.card_inventory.update_stock(inventory["cards"])
+            
+        elif products and self.pack_inventory and self.card_inventory and settings["CARD_BUYING"] == "search":
+            #products information will be added to inventory
+            self.card_inventory.update_inventory(products)
+            self.pack_inventory.update_inventory(products)
+            
+        else:
+            #buying mode is set to bulk buy, so detailed product info is unavailable from transaction
+            #must rescan the inventory
+            self.IMaintenance.refresh_inventory()
+            inventory = self.IMaintenance.get_inventory()
+            self.pack_inventory.update_stock(inventory["packs"])
+            self.card_inventory.update_stock(inventory["cards"])
+            
+        return True
         
     def set_mode(self, mode):
         #set the bot mode to sell or buy

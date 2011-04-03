@@ -9,8 +9,8 @@ import InventoryAdapter
 class CardInventoryModel(object):
     #DAL layer for pricelist for buying and selling single cards
     def __init__(self):
-        inventory_adapter = InventoryAdapter.InventoryAdapter()
-        self.inventory = inventory_adapter.get_inventory(product="cards")
+        self.inventory_adapter = InventoryAdapter.InventoryAdapter()
+        self.inventory = self.inventory_adapter.read_inventory_from_db(product="cards")
         
     #set prices is to be done in gui bot settings prior to transaction
     def set_buy_price(self, name, price):
@@ -25,6 +25,9 @@ class CardInventoryModel(object):
     
     def get_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["stock"]
+    def update_stock(self, card):
+        self.inventory_adapter.set_stock(product=card)
+        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
     def get_max_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["max"]
     

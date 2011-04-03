@@ -4,9 +4,6 @@ path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 exec(open(path_to_bot + "ini.py", "rb").read())
 
 import sys, math
-sys.path.append(path_to_bot + "model/pricelist")
-import PackInventoryModel
-import CardInventoryModel
 
 sys.path.append(path_to_bot + "model")
 import Product
@@ -20,8 +17,6 @@ class IBuy(ITrade.ITrade):
     
     def __init__(self):
         super(IBuy, self).__init__()
-        self.pack_inventory = PackInventoryModel.PackInventoryModel()
-        self.card_inventory = CardInventoryModel.CardInventoryModel()
     
     
     
@@ -108,7 +103,7 @@ class IBuy(ITrade.ITrade):
                         pack_names_keys = pack_names_keys[pack_abbr_index:]
 
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
-                        self.products_taken.append(pack_obj)
+                        self.products_taken["packs"]append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
                 if not found:
                     raise ErrorHandler("Pack scanned, but no png for it")
@@ -178,7 +173,7 @@ class IBuy(ITrade.ITrade):
                                         self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity_to_take=num)
                                         tickets_to_give += settings["BULK_BUY_OPTIONS"]["prices"][rarity] * num
                                         card_obj = Product.Product(name=rarity + ", " + setname, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=amount)
-                                        self.products_taken.append(card_obj)
+                                        self.products_taken["cards"].append(card_obj)
                                         self.number_of_products_taken += num
                                         print("running total for bulk cards = " + str(tickets_to_give))
                                         found = True
@@ -252,7 +247,7 @@ class IBuy(ITrade.ITrade):
                         self.take_product(product_loc=self.topmost_product_name_area.getCenter(), quantity_to_take=amount)
                         wait(0.5)
                         card_obj = Product.Product(name=cardname, buy=self.card_inventory.get_buy_price(cardname), sell=self.card_inventory.get_sell_price(cardname), quantity=amount)
-                        self.products_taken.append(card_obj)
+                        self.products_taken["cards"].append(card_obj)
                         self.number_of_products_taken += amount
                         tickets_to_give += amount * self.card_inventory.get_buy_price(cardname)
                         break
@@ -280,7 +275,7 @@ class IBuy(ITrade.ITrade):
         #variables to hold amount of tickets that should be given
         tickets_to_give = 0.0
         #list that holds all products that were taken, for post transaction recording purposes
-        self.products_taken = []
+        self.products_taken = {"packs": [], "cards": []}
         self.number_of_products_taken = 0
         
         tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
@@ -320,7 +315,7 @@ class IBuy(ITrade.ITrade):
         if isinstance(confirm_button, Match):
             print("confirmation scan, tickets_to_give = " + str(tickets_to_give))
             #keeps record of products found and their amount so far
-            receiving_products_found = []
+            receiving_products_found = {"packs": [], "cards": []}
             rarities_list = self._images.trade["confirm"]["rarity"]
             
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -382,11 +377,12 @@ class IBuy(ITrade.ITrade):
 
                             if product_type == "pack":
                                 product_obj = Product.Product(name=product_abbr, buy=self.pack_inventory.get_buy_price(product_abbr), sell=self.pack_inventory.get_sell_price(product_abbr), quantity=amount)
+                                receiving_products_found["packs"].append(product_obj)
                             elif product_type == "card":
                                 product_obj = Product.Product(name=product_abbr, buy=self.card_inventory.get_buy_price(product_abbr), sell=self.card_inventory.get_sell_price(product_abbr), quantity=amount)
+                                receiving_products_found["cards"].append(product_obj)
                             else:
                                 raise ErrorHandler("Product type has not been set, but product detected")
-                            receiving_products_found.append(product_obj)
                             
                             if amount == 0:
                                 raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
@@ -434,7 +430,7 @@ class IBuy(ITrade.ITrade):
                                         break
                                 print("found " + str(self._images.get_pack_text(phase="confirm", packname=pack)))
                                 product_obj = Product.Product(name=pack, buy=self.pack_inventory.get_buy_price(pack), sell=self.pack_inventory.get_sell_price(pack), quantity=number)
-                                receiving_products_found.append(product_obj)
+                                receiving_products_found["packs"]append(product_obj)
                                 new_index = pack_names_list.index(pack)+1
                                 pack_names_list = pack_names_list[new_index:]
                         if not found:
@@ -458,7 +454,7 @@ class IBuy(ITrade.ITrade):
                                             break
                                     print("found a " + str(self._images.trade["confirm"]["rarity"][rarity]))
                                     product_obj = Product.Product(name=rarity, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=number)
-                                    receiving_products_found.append(product_obj)
+                                    receiving_products_found["cards"].append(product_obj)
                         if not found:
                             raise ErrorHandler("Bulk card found but no valid rarity found")
                         else:
@@ -470,16 +466,17 @@ class IBuy(ITrade.ITrade):
 
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
-            for product in receiving_products_found:
-                expected_number += int(product["quantity"] * product["buy"])
+            for product_type in receiving_products_found:
+                for product in product_type:
+                    expected_number += int(product["quantity"] * product["buy"])
 
             print("expected number of tickets " + str(expected_number))
 
             if expected_number == 0 or not expected_number == tickets_to_give:
                 return False
-            
+
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
-            
+
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if giving_name_region.exists(ticket_text_image):
                 expected_number_image = Pattern(self._images.get_number(number=int(expected_number), category="trade", phase="confirm")).similar(0.9)
@@ -490,7 +487,7 @@ class IBuy(ITrade.ITrade):
                     return False
             else:
                 return False
-            
+
     def complete_purchase(self, customer_credit=0):
         """Will return the transactions details to be recorded if successul
         else will return False"""
@@ -524,7 +521,6 @@ class IBuy(ITrade.ITrade):
         self.Ichat.close_current_chat()
     
         if products_bought:
-            
             self._slow_click(target=self._images.get_trade("confirm_button", "confirm"))
             wait(Pattern(self._images.get_ok_button()), 600)
             self._slow_click(target=self._images.get_ok_button())

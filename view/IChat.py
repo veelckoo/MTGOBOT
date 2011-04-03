@@ -1,5 +1,5 @@
 from sikuli.Sikuli import *
-path_to_bot = getBundlePath().split("bot.sikuli")[0]
+path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 
 import sys
 sys.path.append(path_to_bot + "view")

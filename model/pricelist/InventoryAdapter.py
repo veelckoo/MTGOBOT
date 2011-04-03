@@ -5,7 +5,7 @@ path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 class InventoryAdapter(object):
     
-    def get_inventory(self, product):
+    def read_inventory_from_db(self, product):
         """valid arguments for product are: "packs" or "cards" """
         #this will return a dictionary containg all the buy or sell prices for requested products
         try:
@@ -42,3 +42,6 @@ class InventoryAdapter(object):
                 pricelist_dict[product_name] = {"sell": sell_price, "buy": buy_price, "stock": in_stock, "max": desired_stock}
         
         return pricelist_dict
+    
+    def set_inventory(product):
+        pass
