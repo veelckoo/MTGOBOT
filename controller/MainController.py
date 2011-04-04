@@ -98,11 +98,12 @@ class MainController(object):
                     
                     receipt = None
                     if products_sold:
-                        receipt = {"sold":{}, "bought":{}}
-                        for product_type in products_sold:
-                            for product in product_type:
-                                customer_model.write_transaction(type="sale", product=product["name"], quantity=product["quantity"])
-                        customer_model.write_credits((1-(products_bought["total_tickets"]%1)))
+                        for product_type, products in products_sold.items():
+                            if product_type == "total_tickets":
+                                continue
+                            for product in products:
+                                customer_model.write_transaction(type="sale", productname=product["name"], quantity=product["quantity"])
+                        customer_model.write_credits((1-(products_sold["total_tickets"]%1)))
                         customer_model.write_transaction_date(time=datetime.now())
 
                     
@@ -117,13 +118,18 @@ class MainController(object):
                     receipt = None
                     if products_bought:
                         total_sale = 0
-                        receipt = {"sold":{}, "bought":{}}
-                        for product_type in products_bought:
-                            for product in product_type:
-                                customer_model.write_transaction(type="purchase", product=product["name"], quantity=product["quantity"])
+                        for product_type, products in products_bought.items():
+                            if product_type == "total_tickets":
+                                continue
+                            for product in products:
+                                customer_model.write_transaction(type="purchase", productname=product["name"], quantity=product["quantity"])
                         customer_model.write_credits(products_bought["total_tickets"] % 1)
                         customer_model.write_transaction_date(time=datetime.now())
-                    
+                        
+                if customer_model.save():
+                    print("saved")
+                else:
+                    print("not saved")
                     
         self.trade_mode()
         

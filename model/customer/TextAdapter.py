@@ -53,24 +53,27 @@ class TextAdapter(object):
                     
     def write_all_rows(self, record):
         #an iterable sequence is passed that contains all information to write
+        current_data = []
         try:
             #record the data that is currently in the text file, because once we open it in write mode, everything already on it is erased
-            customer_file = open(path_to_bot + "/customer/" + self.customer_filename, "r")
-            current_data = []
+            customer_file = open(path_to_bot + "customers/" + self.customer_filename + ".txt", "r")
+        except IOError:
+            customer_file = open(path_to_bot + "customers/" + self.customer_filename + ".txt", "w")
+            customer_file.close()
+        else:
             for line in customer_file:
                 current_data.append(line)
             customer_file.close()
-            
-            #now combine the current data with the new data into a new list
-            record_formatted_to_list = [row_name + " : " + str(value) for row_name, value in record.items()]
-            data_to_write = customer_file + record_formatted_to_list
-            
-            #now write out everything including the data that was already in the file
-            customer_file = open(path_to_bot + "/customer/" + self.customer_filename, "w")
-            for line in current_data:
-                customer_file.writelines(data_to_write)
-            self.customer_file.close()
-        except:
-            return False
-        else:
-            return True
+        
+        #now combine the current data with the new data into a new list
+        record_formatted_to_list = [row_name + " : " + str(value) for row_name, value in record.items()]
+        data_to_write = current_data + record_formatted_to_list
+        print(data_to_write)
+        #now write out everything including the data that was already in the file
+        customer_file = open(path_to_bot + "customers/" + self.customer_filename + ".txt", "w")
+        for line in data_to_write:
+            customer_file.writelines(line + "\n")
+        customer_file.writelines("\n\n")
+        customer_file.close()
+        
+        return True

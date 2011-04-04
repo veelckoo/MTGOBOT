@@ -23,8 +23,9 @@ class CustomerDAL(object):
         self.db_adapter = adapters.get(adapter, lambda: None)
         self.record = {}
     
-    def write_transaction(self, type):
-        self.record[type] = products
+    def write_transaction(self, type, productname, quantity):
+        self.record["type"] = type
+        self.record[productname] = quantity
         
     def read_credits(self):
         credit_request = self.db_adapter.read_row("credits")
@@ -40,17 +41,14 @@ class CustomerDAL(object):
         self.record["credit"] = str(amount)
         
     def write_transaction_date(self, time):
-        self.record["id"] = str(id)
+        self.record["date"] = str(time)
 
     def write_comments(self, comment):
         self.record["comment"] = str(datetime.now()) + "    " + str(comment)
 
     def save(self):
-        #validate the customer information, if no exceptions, then write to file
-        try:
-            int(amount)
-            
-        except ValueError:
-            amount = "Error creating transaction id number."
         #call the write_row method for each of the transaction rows
-        self.db_adapter.write_records(self.record)
+        if self.db_adapter.write_all_rows(self.record):
+            return True
+        else:
+            return False

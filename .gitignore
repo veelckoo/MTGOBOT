@@ -79,3 +79,4 @@
 +# Project specific files #
 +##########################
 +transactions.txt
++customers/*.txt

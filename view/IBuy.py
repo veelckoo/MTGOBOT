@@ -103,7 +103,7 @@ class IBuy(ITrade.ITrade):
                         pack_names_keys = pack_names_keys[pack_abbr_index:]
 
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
-                        self.products_taken["packs"]append(pack_obj)
+                        self.products_taken["packs"].append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
                 if not found:
                     raise ErrorHandler("Pack scanned, but no png for it")
@@ -304,7 +304,7 @@ class IBuy(ITrade.ITrade):
         
         return False
 
-    def confirmation_scan(self, tickets_to_give):
+    def confirmation_scan(self, tickets_to_give, credit=0):
         """will return number of tickets taken for transaction recording"""
         #verify confirm window by checking for confirm cancel buttons, then set regions relative to those buttons
         confirm_button = exists(self._images.get_trade("confirm_button", "confirm"), 1200)
@@ -430,7 +430,7 @@ class IBuy(ITrade.ITrade):
                                         break
                                 print("found " + str(self._images.get_pack_text(phase="confirm", packname=pack)))
                                 product_obj = Product.Product(name=pack, buy=self.pack_inventory.get_buy_price(pack), sell=self.pack_inventory.get_sell_price(pack), quantity=number)
-                                receiving_products_found["packs"]append(product_obj)
+                                receiving_products_found["packs"].append(product_obj)
                                 new_index = pack_names_list.index(pack)+1
                                 pack_names_list = pack_names_list[new_index:]
                         if not found:
@@ -466,13 +466,13 @@ class IBuy(ITrade.ITrade):
 
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
-            for product_type in receiving_products_found:
-                for product in product_type:
+            for product_type, products in receiving_products_found.items():
+                for product in products:
                     expected_number += int(product["quantity"] * product["buy"])
-
+            expected_number -= credit
             print("expected number of tickets " + str(expected_number))
 
-            if expected_number == 0 or not expected_number == tickets_to_give:
+            if not expected_number == tickets_to_give:
                 return False
 
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
@@ -516,7 +516,7 @@ class IBuy(ITrade.ITrade):
         self.go_to_confirmation()
         
         #run a final confirmation scan to check the products and tickets taken
-        products_bought = self.confirmation_scan(tickets_to_give=running_total)
+        products_bought = self.confirmation_scan(tickets_to_give=running_total, credit=customer_credit)
         
         self.Ichat.close_current_chat()
     

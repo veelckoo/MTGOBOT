@@ -15,7 +15,7 @@ class ISell(ITrade.ITrade):
     def __init__(self):
         super(ISell, self).__init__()
     
-    def search_for_products(self):
+    def search_for_products(self, credit=0):
         #searches a certain area for any image in a dictionary
 
         #combine all cards and packs for sale into a list
@@ -28,7 +28,8 @@ class ISell(ITrade.ITrade):
         self.last_mouse_position = False
         #list of all images found
         products = []
-
+        
+        number_of_tickets_to_take = 0 - credit
         #keep a record of product names found to prevent duplicates
         regular_scroll_bar = None
         mini_scroll_bar = None
@@ -82,10 +83,11 @@ class ISell(ITrade.ITrade):
                             pack_index = product_names_list.index(product_name)+1
                             product_names_list = product_names_list[pack_index:]
                             break
+                    
                     if product_type == "pack":
-                        product = Product.Product(name = product_name, buy = self.pack_inventory.get_buy_price(product_name), sell = self.pack_inventory.get_sell_price(product_name), quantity = amount)
+                        number_of_tickets_to_take += self.pack_inventory.get_sell_price(product_name) * amount
                     elif product_type == "card":
-                        product = Product.Product(name = product_name, buy = self.card_inventory.get_buy_price(product_name), sell = self.card_inventory.get_sell_price(product_name), quantity = amount)
+                        number_of_tickets_to_take += self.card_inventory.get_sell_price(product_name) * amount
                     else:
                         raise ErrorHandler("Product type has not been set, but product detected")
                     products.append(product)
@@ -107,9 +109,9 @@ class ISell(ITrade.ITrade):
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
         
-        return products
+        return number_of_tickets_to_take
             
-    def confirmation_scan(self, tickets_to_take):
+    def confirmation_scan(self, tickets_to_take, credit=0):
         #does a scan depending on which type is requested.  Each pass should scan the window differently
         #to confirm that the correct
         
@@ -198,17 +200,20 @@ class ISell(ITrade.ITrade):
                     how_many_pixels_to_move_down =  18
                 giving_number_region = Region(giving_number_region.getX(), giving_number_region.getY()+how_many_pixels_to_move_down, giving_number_region.getW(), giving_number_region.getH())
                 giving_name_region = Region(giving_name_region.getX(), giving_name_region.getY()+how_many_pixels_to_move_down, giving_name_region.getW(), giving_name_region.getH())
-                
+            
+            
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
-            for product_type in giving_products_found:
-                for product in product_type:
-                    expected_number += math.ceil(product["quantity"] * product["sell"])
+            for product_type, products in giving_products_found.items():
+                for product in products:
+                    expected_number += product["quantity"] * product["sell"]
+                    print(expected_number)
+            expected_number -= credit
             print("expected tickets: " + str(expected_number))
-            
-            if expected_number == 0 or not expected_number == tickets_to_take:
+
+            if not expected_number == tickets_to_take:
                 return False
-            
+
             #in case the customer has canceled trade
             if self.app_region.exists(self._images.get_trade("canceled_trade")):
                 return False
@@ -217,14 +222,14 @@ class ISell(ITrade.ITrade):
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if receiving_name_region.exists(ticket_text_image):
                 print("ticket image found")
-                expected_number_image = Pattern(self._images.get_number(number=int(expected_number), category="trade", phase="confirm")).similar(0.7)
+                expected_number_image = Pattern(self._images.get_number(number=int(math.ceil(expected_number)), category="trade", phase="confirm")).similar(0.9)
                 print(str(expected_number_image))
                 if receiving_number_region.exists(expected_number_image):
                     print("ticket amount image found")
                     return giving_products_found
                 else:
                     return False
-            
+
     def complete_sale(self, customer_credit=0):
         #calls calculate_tickets_to_take to get the number of tickets to take and proceeds to take them, 
         #does a check to make sure correct ticket amount was taken
@@ -238,21 +243,13 @@ class ISell(ITrade.ITrade):
         
         self.Ichat.type_msg("Calculating tickets to take.  Please wait..")
         
-        products_giving = self.search_for_products()
+        number_of_tickets = self.search_for_products() - customer_credit
         
-        #calculate the number of tickets to take according to products found
-        number_of_tickets = 0
-        for product in products_giving:
-            number_of_tickets += (product["quantity"]) * (product["sell"])
-        
-        number_of_tickets -= customer_credit
-            
         #if user has canceled or there was any other problem
-        if not products_giving or not number_of_tickets > 0:
+        if number_of_tickets is False:
             self.cancel_trade()
             return False
         
-            
         self.filter_product_version(version="packs_tickets")
         
         tickets = self.app_region.exists(self._images.get_ticket())
@@ -270,7 +267,7 @@ class ISell(ITrade.ITrade):
         
         #returns an object that holds all products sold if successful scan
         #otherwise returns False
-        products_sold = self.confirmation_scan(tickets_to_take=number_of_tickets)
+        products_sold = self.confirmation_scan(tickets_to_take=number_of_tickets, credit=customer_credit)
         
         self.Ichat.close_current_chat()
         
