@@ -109,7 +109,7 @@ class MainController(object):
                     
                 #enter buying mode
                 elif self.get_mode() == "buy":
-                    self.IBuy.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
+                    self.Ibuy.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
                     self.Ichat.type_msg(self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Ibuy.set_windows()
                     #take packs from the customer
