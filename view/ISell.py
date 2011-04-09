@@ -8,13 +8,15 @@ import Product
 
 sys.path.append(path_to_bot + "view")
 import ITrade
+import FrameGrabTrade
 
 class ISell(ITrade.ITrade):
     #this class is used when the bot is put into temporary sell mode during a trade or perma sell mode prior to trade
     
     def __init__(self):
         super(ISell, self).__init__()
-    
+        self.frame_grab = FrameGrabTrade.FrameGrabTrade()
+        
     def search_for_products(self, credit=0):
         #searches a certain area for any image in a dictionary
 
@@ -41,16 +43,20 @@ class ISell(ITrade.ITrade):
         #scan_region will be used as the region to scan for the packs and number of packs
         #using the giving window as region, each product row is scanned for a product name and quantity
         #NOTE: A single area reserved for the text of a single product is a 192px(width) by 16/17px(height) area, with a 1px buffer in between each string
-        scan_region = Region(self.giving_window_region.getX(), self.giving_window_region.getY()+43, 198, 17)
+        #scan_region = Region(self.giving_window_region.getX(), self.giving_window_region.getY()+43, 198, 17)
+        
+        giving_product_name_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="giving_window", subsection="product_name_area")
+        giving_product_quantity_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="giving_window", subsection="product_quantity_area")
+        
         how_many_pixels_to_move_down = 17
         #keep while loop as long as there is still a pack to be scanned
         found = True
         while found:
             found = False
-            if scan_region.exists(self._images.trade["empty"]):
+            if giving_product_name_area.exists(self._images.trade["empty"]):
                 print("blank line found")
                 break
-            print("scanning " + str(scan_region.x) + ", "  + str(scan_region.y) + ", "  + str(scan_region.w) + ", "  + str(scan_region.h))
+            print("scanning " + str(giving_product_name_area.x) + ", "  + str(giving_product_name_area.y) + ", "  + str(giving_product_name_area.w) + ", "  + str(giving_product_name_area.h))
             for product_name in product_names_list:
                 #if the product name to check is not a pack name, it must be a card name, if not then skip the product
                 #because there is no png file for the product
@@ -66,7 +72,7 @@ class ISell(ITrade.ITrade):
                 else:
                     product_type = "pack"
                 print("searching for " + str(product))
-                if scan_region.exists(Pattern(product).exact()):
+                if giving_product_name_area.exists(Pattern(product).exact()):
                     print("found " + str(product))
                     found = True
 
@@ -75,7 +81,7 @@ class ISell(ITrade.ITrade):
                             continue
                         
                         searchPattern = Pattern(numbers_list[key]).exact()
-                        if(scan_region.exists(searchPattern)):
+                        if(giving_product_quantity_area.exists(searchPattern)):
                             amount = key
                             #for booster packs, there is a specific order in which they appear in the list,
                             #when a pack is found, remove all packs before and including that pack in the keys
@@ -101,14 +107,16 @@ class ISell(ITrade.ITrade):
                 how_many_pixels_to_move_down = 17
             else:
                 how_many_pixels_to_move_down =  18
+
             #if first scan area was already set, then relative distance from last region
             #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
-            scan_region = Region(scan_region.getX(), scan_region.getY()+how_many_pixels_to_move_down, scan_region.getW(), scan_region.getH())
-                    
+            giving_product_name_area = Region(giving_product_name_area.getX(), giving_product_name_area.getY()+how_many_pixels_to_move_down, giving_product_name_area.getW(), giving_product_name_area.getH())
+            giving_product_quantity_area = Region(giving_product_quantity_area.getX(), giving_product_quantity_area.getY()+how_many_pixels_to_move_down, giving_product_quantity_area.getW(), giving_product_quantity_area.getH())
+
         #in case the customer has canceled the trade
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
-        
+
         return number_of_tickets_to_take
             
     def confirmation_scan(self, tickets_to_take, credit=0):
@@ -129,12 +137,19 @@ class ISell(ITrade.ITrade):
             #confirm products receiving
             #set the regions of a single product and and the amount slow
             #number region is 20px down and 260px to the left, 13px height and 30px wide, 4px buffer vertically
-            receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+42, 34, 14)
+            #receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+42, 34, 14)
             #height for each product is 13px, and 4px buffer vertically between each product slot
-            receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+42, 163, 14)
+            #receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+42, 163, 14)
+            receiving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_quantity_area")
+            receiving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_name_area")
+            
+            
+            giving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_quantity_area")
+            giving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_name_area")
+            
             #confirm products giving
-            giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 14)
-            giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 14)
+            #giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 14)
+            #giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 14)
             #this is a variable that will hold the number of pixels to move down after scanning each area
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5

@@ -11,29 +11,36 @@ import Product
 
 sys.path.append(path_to_bot + "view")
 import ITrade
+import FrameGrabTrade
 
 class IBuy(ITrade.ITrade):
     #this class is used when the bot is put into buy mode during a trade
     
     def __init__(self):
         super(IBuy, self).__init__()
-    
-    
+        self.frame_grab = FrameGrabTrade.FrameGrabTrade()
     
     def search_for_packs(self, tickets_to_give=0.0):
         #will take all packs found in the customers collection and in buy list
         self.filter_product_version(version="packs_tickets")
         
+        product_name_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="collection", subsection="product_name_area")
+        product_quantity_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="collection", subsection="product_quantity_area")
+        
+        if product_name_area.exists(self._images.get_ticket_text()):
+            product_name_area.setY(product_name_area.getY()+16)
+            product_quantity_area.setY(product_quantity_area.getY()+16)
+        
+        searchfield = self.frame_grab.searchfield(app_region=self.app_region)
+        searchbutton = self.frame_grab.searchbutton(app_region=self.app_region)
+        
         #we don't want to take tickets, just products
-        if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
-            product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-            product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-        else:
-            product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-            product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-            
-        #holds the prices for all the packs
-        prices = PackInventoryModel.PackInventoryModel()
+        #if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
+        #    product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
+        #    product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
+        #else:
+        #    product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
+        #    product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
         
         #a dict that holds images of the names of all packs
         pack_names_keys = self.pack_inventory.get_sorted_pack_list()
@@ -56,6 +63,7 @@ class IBuy(ITrade.ITrade):
             
             for packname in pack_names_keys:
                 print("searching for " + str(packname))
+                print("at " + str(product_name_area.x) + " " + str(product_name_area.y) + " " + str(product_name_area.w) + " " + str(product_name_area.h))
                 max_buy = self.pack_inventory.get_max_stock(packname) - self.pack_inventory.get_stock(packname)
                 if max_buy == 0:
                     continue
@@ -76,6 +84,7 @@ class IBuy(ITrade.ITrade):
                         if num == 0:
                             continue
                         print("checkiing for number " + str(number_list[num]))
+                        print("scan region: " + str(product_quantity_area.x) + " " + str(product_quantity_area.y) + " " + str(product_quantity_area.w) + " " + str(product_quantity_area.h) + " ")
                         if product_quantity_area.exists(Pattern(number_list[num]).similar(0.9)):
                             
                             
@@ -105,10 +114,10 @@ class IBuy(ITrade.ITrade):
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
                         self.products_taken["packs"].append(pack_obj)
                         tickets_to_give += pack_obj["quantity"] * pack_obj["buy"]
-                if not found:
-                    raise ErrorHandler("Pack scanned, but no png for it")
-                else:
-                    break
+                    if not found:
+                        raise ErrorHandler("Pack scanned, but no png for it")
+                    else:
+                        break
 
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
@@ -188,8 +197,8 @@ class IBuy(ITrade.ITrade):
         else:
             self.filter_product_version("regular")
         wait(1)
-        searchfield = Location(self.confirm_button.x-220, self.confirm_button.y-28)
-        searchbutton = Location(self.confirm_button.x-255, self.confirm_button.y-28)
+        searchfield = self.frame_grab.searchfield(app_region=self.app_region)
+        searchbutton = self.frame_grab.searchbutton(app_region=self.app_region)
         cards_taken = []
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         number_of_searches = 2 if settings["BUY_FOIL"] == "yes" else 1
@@ -264,9 +273,9 @@ class IBuy(ITrade.ITrade):
         self.confirm_button = self.app_region.exists(self._images.get_trade("confirm_button"), 30)
         #find the position in the window where the topmost product would be located
         
-        self.topmost_product_name_area = Region(self.confirm_button.getX()-271, self.confirm_button.getY()+47, 159, 17)
-        self.topmost_product_quantity_area = Region(self.confirm_button.getX()-113, self.confirm_button.getY()+47, 40, 17)
-        self.top_most_product_set_area = Region(self.confirm_button.getX()+9, self.confirm_button.getY()+47, 63, 17)
+        self.topmost_product_name_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="collection", subsection="product_name_area")
+        self.topmost_product_quantity_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="collection", subsection="product_quantity_area")
+        self.topmost_product_set_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="collection", subsection="product_set_area")
         
         #sort button will be used for preconfirm stage
         self.name_sort_button_location = Location(self.confirm_button.getX()-231, self.confirm_button.getY()+23)
@@ -278,7 +287,8 @@ class IBuy(ITrade.ITrade):
         self.products_taken = {"packs": [], "cards": []}
         self.number_of_products_taken = 0
         
-        tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
+        ## DEBUG ##
+        #tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
         
         if settings["CARD_BUYING"] == "bulk":
             tickets_to_give = self.search_for_bulk_cards(tickets_to_give=tickets_to_give)
@@ -322,14 +332,24 @@ class IBuy(ITrade.ITrade):
             #confirm products receiving
             #these regions correspond to a single row from each column
             #height for each product is 13px, and 4px buffer vertically between each product slot
-            receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+41, 34, 17)
-            receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+41, 163, 17)
-            receiving_rarity_region = Region(confirm_button.getX()+340, confirm_button.getY()+41, 61, 17)
-            receiving_set_region = Region(confirm_button.getX()+291, confirm_button.getY()+41, 45, 17)
+            
+            receiving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_quantity_area")
+            receiving_rarity_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_rarity_area")
+            receiving_set_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_set_area")
+            receiving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_name_area")
+            
+            
+            #receiving_number_region = Region(confirm_button.getX()-289, confirm_button.getY()+41, 34, 17)
+            #receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+41, 163, 17)
+            #receiving_rarity_region = Region(confirm_button.getX()+340, confirm_button.getY()+41, 61, 17)
+            #receiving_set_region = Region(confirm_button.getX()+291, confirm_button.getY()+41, 45, 17)
             
             #confirm products giving
-            giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 17)
-            giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 17)
+            giving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_quantity_area")
+            giving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_name_area")
+            
+            #giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 17)
+            #giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 17)
             #this is a variable that will hold the number of pixels to move down after scanning each area
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5
@@ -339,6 +359,7 @@ class IBuy(ITrade.ITrade):
             found=True
             if settings["CARD_BUYING"] == "search":
                 product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
+                product_names_list.sort()
                 while found:
                     if receiving_name_region.exists(self._images.trade["empty"]):
                         break
@@ -364,6 +385,7 @@ class IBuy(ITrade.ITrade):
                             for number in range(len(numbers)):
                                 if number == 0:
                                     continue
+                                print("searching for number" + str(number) + " at " + str(receiving_number_region.x) + " " + str(receiving_number_region.y) + " " + str(receiving_number_region.w) + " " + str(receiving_number_region.h) + " ")
                                 if receiving_number_region.exists(Pattern(numbers[number]).similar(0.8)):
                                     print(str(number) + " amount of " + product_abbr + " found!")
                                     amount = number
@@ -394,10 +416,10 @@ class IBuy(ITrade.ITrade):
                                 how_many_pixels_to_move_down =  18
                             receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                             receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
-                    if not found:
-                        raise ErrorHandler("Product scanned, but no png file found for it")
-                    else:
-                        break
+                            if not found:
+                                raise ErrorHandler("Product scanned, but no png file found for it")
+                            else:
+                                break
             else:
                 pack_names_list = self.pack_inventory.get_sorted_pack_list()
                 card_names_list = self.card_inventory.get_card_name_list()
@@ -433,10 +455,10 @@ class IBuy(ITrade.ITrade):
                                 receiving_products_found["packs"].append(product_obj)
                                 new_index = pack_names_list.index(pack)+1
                                 pack_names_list = pack_names_list[new_index:]
-                        if not found:
-                            raise ErrorHandler("Pack found but no png found for it")
-                        else:
-                            break
+                                if not found:
+                                    raise ErrorHandler("Pack found but no png found for it")
+                                else:
+                                    break
                     else:
                         print("None is not found")
                         #check to see if it's a card.  cards are bought in bulk, so name isn't scanned, just rarity
@@ -455,10 +477,10 @@ class IBuy(ITrade.ITrade):
                                     print("found a " + str(self._images.trade["confirm"]["rarity"][rarity]))
                                     product_obj = Product.Product(name=rarity, buy=settings["BULK_BUY_OPTIONS"]["prices"][rarity], sell=0, quantity=number)
                                     receiving_products_found["cards"].append(product_obj)
-                        if not found:
-                            raise ErrorHandler("Bulk card found but no valid rarity found")
-                        else:
-                            break
+                                if not found:
+                                    raise ErrorHandler("Bulk card found but no valid rarity found")
+                                else:
+                                    break
 
                     receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
                     receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
@@ -468,7 +490,7 @@ class IBuy(ITrade.ITrade):
             expected_number = 0
             for product_type, products in receiving_products_found.items():
                 for product in products:
-                    expected_number += int(product["quantity"] * product["buy"])
+                    expected_number += product["quantity"] * product["buy"]
             expected_number -= credit
             print("expected number of tickets " + str(expected_number))
 
@@ -476,7 +498,7 @@ class IBuy(ITrade.ITrade):
                 return False
 
             hover(Location(giving_number_region.getX(), giving_number_region.getY()))
-
+            print("scanning region for number " + str(giving_name_region.x) + " " + str(giving_name_region.y) + " " + str(giving_name_region.w) + " " + str(giving_name_region.h))
             ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
             if giving_name_region.exists(ticket_text_image):
                 expected_number_image = Pattern(self._images.get_number(number=int(expected_number), category="trade", phase="confirm")).similar(0.9)
@@ -514,7 +536,7 @@ class IBuy(ITrade.ITrade):
             self.cancel_trade()
         
         self.go_to_confirmation()
-        
+        print("starting confirmation scan")
         #run a final confirmation scan to check the products and tickets taken
         products_bought = self.confirmation_scan(tickets_to_give=running_total, credit=customer_credit)
         
