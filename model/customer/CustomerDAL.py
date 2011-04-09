@@ -28,7 +28,8 @@ class CustomerDAL(object):
         self.record[productname] = quantity
         
     def read_credits(self):
-        credit_request = self.db_adapter.read_row("credits")
+        #will return the last value of credit
+        credit_request = self.db_adapter.read_row(row_name="credit")
         try:
             credits = float(credit_request)
         except ValueError:

@@ -28,9 +28,10 @@ class TextAdapter(object):
         customer_file = open(path_to_bot + "customers/" + self.customer_filename + ".txt", "r")
         value = None
         for line in customer_file:
+            print(str(line))
             if row_name in line:
-                value = line.split(row_name + ":")
-        
+                value = line.split(":")
+                print(str(value))
         customer_file.close()
         if value:
             return value[1].strip()
@@ -71,9 +72,10 @@ class TextAdapter(object):
         print(data_to_write)
         #now write out everything including the data that was already in the file
         customer_file = open(path_to_bot + "customers/" + self.customer_filename + ".txt", "w")
+        customer_file.writelines("\n")
         for line in data_to_write:
             customer_file.writelines(line + "\n")
-        customer_file.writelines("\n\n")
+        customer_file.writelines("\n")
         customer_file.close()
         
         return True

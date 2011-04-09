@@ -234,17 +234,22 @@ class ISell(ITrade.ITrade):
                 return False
 
             hover(Location(receiving_number_region.getX(), receiving_number_region.getY()))
-            ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
-            if receiving_name_region.exists(ticket_text_image):
-                print("ticket image found")
-                expected_number_image = Pattern(self._images.get_number(number=int(math.ceil(expected_number)), category="trade", phase="confirm")).similar(0.9)
-                print(str(expected_number_image))
-                if receiving_number_region.exists(expected_number_image):
-                    print("ticket amount image found")
-                    return giving_products_found
-                else:
-                    return False
-
+            if expected_number > 0 and expected_number is not False:
+                ticket_text_image = Pattern(self._images.get_ticket_text()).similar(1)
+                if receiving_name_region.exists(ticket_text_image):
+                    print("ticket image found")
+                    expected_number_image = Pattern(self._images.get_number(number=int(math.ceil(expected_number)), category="trade", phase="confirm")).similar(0.9)
+                    print(str(expected_number_image))
+                    if receiving_number_region.exists(expected_number_image):
+                        print("ticket amount image found")
+                        return giving_products_found
+                    else:
+                        return False
+            elif expected_number <= 0:
+            
+                return giving_products_found
+            else:
+                return False
     def complete_sale(self, customer_credit=0):
         #calls calculate_tickets_to_take to get the number of tickets to take and proceeds to take them, 
         #does a check to make sure correct ticket amount was taken
