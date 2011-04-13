@@ -1,0 +1,3 @@
+
+class RecordsSetting(self):
+    pass

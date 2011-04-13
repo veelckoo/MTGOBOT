@@ -1,0 +1,3 @@
+
+class TradeSettings(object):
+    pass

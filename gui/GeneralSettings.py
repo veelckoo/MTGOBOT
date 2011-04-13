@@ -1,0 +1,3 @@
+
+class GeneralSettings(object):
+    pass

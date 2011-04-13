@@ -40,7 +40,7 @@ class CustomerDAL(object):
 
     def write_credits(self, amount):
         self.record["credit"] = str(amount)
-        
+
     def write_transaction_date(self, time):
         self.record["date"] = str(time)
 

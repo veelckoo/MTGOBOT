@@ -92,7 +92,7 @@ class MainController(object):
                 #enter selling mode
                 if self.get_mode() == "sell":
                     self.Isell.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
-                    self.Ichat.type_msg(self.selling_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
+                    self.Ichat.type_msg("Hello, " + str(customer_name) + ". " + self.selling_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Isell.set_windows()
                     products_sold = self.Isell.complete_sale(customer_credit=customer_model.read_credits())
                     
@@ -110,7 +110,7 @@ class MainController(object):
                 #enter buying mode
                 elif self.get_mode() == "buy":
                     self.Ibuy.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
-                    self.Ichat.type_msg(self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
+                    self.Ichat.type_msg("Hello, " + str(customer_name) + ". " + self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                     self.Ibuy.set_windows()
                     #take packs from the customer
                     products_bought = self.Ibuy.complete_purchase(customer_credit=customer_model.read_credits())

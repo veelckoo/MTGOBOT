@@ -34,19 +34,13 @@ class IBuy(ITrade.ITrade):
         searchfield = self.frame_grab.searchfield(app_region=self.app_region)
         searchbutton = self.frame_grab.searchbutton(app_region=self.app_region)
         
-        #we don't want to take tickets, just products
-        #if self.topmost_product_name_area.exists(self._images.get_ticket_text()):
-        #    product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-        #    product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY()+16, self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-        #else:
-        #    product_name_area = Region(self.topmost_product_name_area.getX(), self.topmost_product_name_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-        #    product_quantity_area = Region(self.topmost_product_quantity_area.getX(), self.topmost_product_quantity_area.getY(), self.topmost_product_name_area.getW(), self.topmost_product_name_area.getH())
-        
         #a dict that holds images of the names of all packs
         pack_names_keys = self.pack_inventory.get_sorted_pack_list()
         #this will hold all the product objects that have been taken
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
         
+        #shift down product slots when no more packs are wanted, and we want to move onto the next pack below
+        how_many_pixels_to_move_down = 17
         
         #this variable is used as an indicator whether the while loop should keep iterating
         found = True
@@ -62,19 +56,34 @@ class IBuy(ITrade.ITrade):
                 break
             
             for packname in pack_names_keys:
-                print("searching for " + str(packname))
-                print("at " + str(product_name_area.x) + " " + str(product_name_area.y) + " " + str(product_name_area.w) + " " + str(product_name_area.h))
-                max_buy = self.pack_inventory.get_max_stock(packname) - self.pack_inventory.get_stock(packname)
-                if max_buy == 0:
-                    continue
                 try:
                     pack_text_filepath = self._images.get_pack_text(phase="preconfirm", packname=packname)
                 except KeyError:
+                    print("No pack with that name found")
                     continue
+                
+                print("searching for " + str(pack_text_filepath))
+                print("at " + str(product_name_area.x) + " " + str(product_name_area.y) + " " + str(product_name_area.w) + " " + str(product_name_area.h))
+                
+                if product_name_area.exists(Pattern(pack_text_filepath).exact()):
+                    print(pack_text_filepath + " found!")
+                    found = True
                     
-                print("Looking for " + str(pack_text_filepath))
-                if product_name_area.exists(Pattern(pack_text_filepath).similar(1)):
-                    print(packname + " found!")
+                    current_product_location = product_name_area.getCenter()
+                    
+                    max_buy = self.pack_inventory.get_max_stock(packname) - self.pack_inventory.get_stock(packname)
+                    if max_buy <= 0:
+                        product_name_area = Region(product_name_area.getX(), product_name_area.getY()+how_many_pixels_to_move_down, product_name_area.getW(), product_name_area.getH())
+                        product_quantity_area = Region(product_quantity_area.getX(), product_quantity_area.getY()+how_many_pixels_to_move_down, product_quantity_area.getW(), product_quantity_area.getH())
+                        if how_many_pixels_to_move_down == 17:
+                            how_many_pixels_to_move_down = 18
+                        else:
+                            how_many_pixels_to_move_down = 17
+                        pack_abbr_index = pack_names_keys.index(packname)
+                        pack_names_keys = pack_names_keys[pack_abbr_index:]
+                        print("shifting down 1")
+                        break
+                        
                     
                     amount = 0
                     
@@ -86,17 +95,24 @@ class IBuy(ITrade.ITrade):
                         print("checkiing for number " + str(number_list[num]))
                         print("scan region: " + str(product_quantity_area.x) + " " + str(product_quantity_area.y) + " " + str(product_quantity_area.w) + " " + str(product_quantity_area.h) + " ")
                         if product_quantity_area.exists(Pattern(number_list[num]).similar(0.9)):
-                            
-                            
                             #make sure to buy only enough to fill up to maximum stock level
-                            if num < max_buy:
+                            if num <= max_buy:
                                 #customer has less than your max buy, so take all that they have
                                 amount = num
                             else:
                                 #if customer has more packs then you want, only take however much you want
                                 amount = max_buy if max_buy > 0 else 0
+                                
+                                #since there will be left over product in the current product slot, move the scan region
+                                #down to move onto the next product
+                                product_name_area = Region(product_name_area.getX(), product_name_area.getY()+how_many_pixels_to_move_down, product_name_area.getW(), product_name_area.getH())
+                                product_quantity_area = Region(product_quantity_area.getX(), product_quantity_area.getY()+how_many_pixels_to_move_down, product_quantity_area.getW(), product_quantity_area.getH())
+                                if how_many_pixels_to_move_down == 17:
+                                    how_many_pixels_to_move_down = 18
+                                else:
+                                    how_many_pixels_to_move_down = 17
+                                print("shifting down 2")
                             print("amount to take " + str(amount))
-                            found = True
                             break
                             
 
@@ -106,9 +122,11 @@ class IBuy(ITrade.ITrade):
                             amount = settings["MAX_PRODUCTS_PER_TRADE"] - self.number_of_products_taken
                         if tickets_to_give + (self.pack_inventory.get_buy_price(packname) * amount) > settings["MAX_PRODUCTS_PER_TRADE"]:
                             amount = int((settings["MAX_PRODUCTS_PER_TRADE"] - tickets_to_give) / self.pack_inventory.get_buy_price(packname))
-                        self.take_product(product_loc=product_name_area.getCenter(), quantity_to_take=amount)
+                        self.take_product(product_loc=current_product_location, quantity_to_take=amount)
+                        #move pointer away so that it doesn't bring up tooltip, blocking the next product slot below
+                        hover(Location(self.app_region.getX(), self.app_region.getY()))
 
-                        pack_abbr_index = pack_names_keys.index(packname)+1
+                        pack_abbr_index = pack_names_keys.index(packname)
                         pack_names_keys = pack_names_keys[pack_abbr_index:]
 
                         pack_obj = Product.Product(name=packname, buy = self.pack_inventory.get_buy_price(packname), sell = self.pack_inventory.get_sell_price(packname), quantity=amount)
@@ -288,7 +306,7 @@ class IBuy(ITrade.ITrade):
         self.number_of_products_taken = 0
         
         ## DEBUG ##
-        #tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
+        tickets_to_give = self.search_for_packs(tickets_to_give=tickets_to_give)
         
         if settings["CARD_BUYING"] == "bulk":
             tickets_to_give = self.search_for_bulk_cards(tickets_to_give=tickets_to_give)
