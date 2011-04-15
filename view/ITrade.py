@@ -13,6 +13,8 @@ class ITrade(Interface.Interface):
     def __init__(self):
         super(ITrade, self).__init__()
         self.Ichat= IChat.IChat()
+        #for shifting products slots down
+        self.how_many_pixels_to_move_down = 17
     
     def update_inventory(self, card_inventory, pack_inventory):
         self.card_inventory = card_inventory
@@ -23,7 +25,16 @@ class ITrade(Interface.Interface):
         #usually this will be used to wait for trade request
         self.app_region.wait(Pattern(self._images.get_trade(type)).similar(0.9), FOREVER)
         return True
-        
+    
+    def next_row(self, *args):
+        if self.how_many_pixels_to_move_down == 17:
+            self.how_many_pixels_to_move_down = 18
+        else:
+            self.how_many_pixels_to_move_down = 17
+        print("called next row")
+        for slot_region in args:
+            slot_region.setY(slot_region.getY()+self.how_many_pixels_to_move_down)
+    
     def cancel_trade(self):
         #if trade has alreaady been canceled, then click ok, otherwise cancel the trade
         self._slow_click(target=self._images.trade["cancel_trade"])

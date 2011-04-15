@@ -37,10 +37,8 @@ class IBuy(ITrade.ITrade):
         #a dict that holds images of the names of all packs
         pack_names_keys = self.pack_inventory.get_sorted_pack_list()
         #this will hold all the product objects that have been taken
-        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="collection")
         
-        #shift down product slots when no more packs are wanted, and we want to move onto the next pack below
-        how_many_pixels_to_move_down = 17
         
         #this variable is used as an indicator whether the while loop should keep iterating
         found = True
@@ -73,12 +71,7 @@ class IBuy(ITrade.ITrade):
                     
                     max_buy = self.pack_inventory.get_max_stock(packname) - self.pack_inventory.get_stock(packname)
                     if max_buy <= 0:
-                        product_name_area = Region(product_name_area.getX(), product_name_area.getY()+how_many_pixels_to_move_down, product_name_area.getW(), product_name_area.getH())
-                        product_quantity_area = Region(product_quantity_area.getX(), product_quantity_area.getY()+how_many_pixels_to_move_down, product_quantity_area.getW(), product_quantity_area.getH())
-                        if how_many_pixels_to_move_down == 17:
-                            how_many_pixels_to_move_down = 18
-                        else:
-                            how_many_pixels_to_move_down = 17
+                        self.next_row(product_name_area, product_quantity_area)
                         pack_abbr_index = pack_names_keys.index(packname)
                         pack_names_keys = pack_names_keys[pack_abbr_index:]
                         print("shifting down 1")
@@ -105,12 +98,11 @@ class IBuy(ITrade.ITrade):
                                 
                                 #since there will be left over product in the current product slot, move the scan region
                                 #down to move onto the next product
-                                product_name_area = Region(product_name_area.getX(), product_name_area.getY()+how_many_pixels_to_move_down, product_name_area.getW(), product_name_area.getH())
-                                product_quantity_area = Region(product_quantity_area.getX(), product_quantity_area.getY()+how_many_pixels_to_move_down, product_quantity_area.getW(), product_quantity_area.getH())
-                                if how_many_pixels_to_move_down == 17:
-                                    how_many_pixels_to_move_down = 18
-                                else:
-                                    how_many_pixels_to_move_down = 17
+                                print(str(product_name_area.getY()))
+                                print("calling next row")
+                                self.next_row(product_name_area, product_quantity_area)
+                                print("finished next row")
+                                print(str(product_name_area.getY()))
                                 print("shifting down 2")
                             print("amount to take " + str(amount))
                             break
@@ -145,7 +137,7 @@ class IBuy(ITrade.ITrade):
     def search_for_bulk_cards(self, tickets_to_give=0.0):
         #this will buy all rares, mythics, uncommons, and/or commons that the customer has available
         
-        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="collection")
         
         if settings["BUY_FOIL"] == "yes":
             self.filter_product_version("all_versions")
@@ -218,7 +210,7 @@ class IBuy(ITrade.ITrade):
         searchfield = self.frame_grab.searchfield(app_region=self.app_region)
         searchbutton = self.frame_grab.searchbutton(app_region=self.app_region)
         cards_taken = []
-        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
+        number_list = self._images.get_all_numbers_as_dict(category="trade", phase="collection")
         number_of_searches = 2 if settings["BUY_FOIL"] == "yes" else 1
         
         for cardname, inv in self.card_inventory.inventory.items():
@@ -368,10 +360,6 @@ class IBuy(ITrade.ITrade):
             
             #giving_number_region = Region(confirm_button.getX()-291, confirm_button.getY()+391, 34, 17)
             #giving_name_region = Region(confirm_button.getX()-260, confirm_button.getY()+391, 163, 17)
-            #this is a variable that will hold the number of pixels to move down after scanning each area
-            #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
-            #alternating numbers 4 or 5
-            how_many_pixels_to_move_down = 0
             print("x: " + str(receiving_name_region.x) + ", y: " + str(receiving_name_region.y) + ", w: " + str(receiving_name_region.w) + ", h: " + str(receiving_name_region.h))
             
             found=True
@@ -428,12 +416,7 @@ class IBuy(ITrade.ITrade):
                                 raise ErrorHandler("Could not find a number for product: " + str(product_abbr))
                             found=True
                             
-                            if how_many_pixels_to_move_down != 17:
-                                how_many_pixels_to_move_down = 17
-                            else:
-                                how_many_pixels_to_move_down =  18
-                            receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
-                            receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
+                            self.next_row(receiving_number_region, receiving_name_region)
                             if not found:
                                 raise ErrorHandler("Product scanned, but no png file found for it")
                             else:
@@ -448,12 +431,7 @@ class IBuy(ITrade.ITrade):
                         break
                     found = False
                     hover(Location(receiving_name_region.getX()-10, receiving_name_region.getY()))
-                    #number of pixels to move down after checking a product slot
-                    if how_many_pixels_to_move_down != 17:
-                        how_many_pixels_to_move_down = 17
-                    else:
-                        how_many_pixels_to_move_down =  18
-                        #check if there is a card in the product slot
+                    #check if there is a card in the product slot
                     if receiving_rarity_region.exists(self._images.trade["confirm"]["rarity"]["none"]):
                         print("None found")
                         for pack in pack_names_list:
@@ -499,10 +477,7 @@ class IBuy(ITrade.ITrade):
                                     raise ErrorHandler("Bulk card found but no valid rarity found")
                                 else:
                                     break
-
-                    receiving_number_region = Region(receiving_number_region.getX(), receiving_number_region.getY()+how_many_pixels_to_move_down, receiving_number_region.getW(), receiving_number_region.getH())
-                    receiving_name_region = Region(receiving_name_region.getX(), receiving_name_region.getY()+how_many_pixels_to_move_down, receiving_name_region.getW(), receiving_name_region.getH())
-                    receiving_rarity_region = Region(receiving_rarity_region.getX(), receiving_rarity_region.getY()+how_many_pixels_to_move_down, receiving_rarity_region.getW(), receiving_rarity_region.getH())
+                    self.next_row(receiving_number_region, receiving_name_region, receiving_rarity_region)
 
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0

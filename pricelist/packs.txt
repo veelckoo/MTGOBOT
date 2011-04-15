@@ -1,8 +1,8 @@
 #product name | sell price | buy price | in stock | desired stock
-Magic 2011 | 3.8 | 3 | 3 | 4
-Masters Edition 4 | 3.8 | 4 | 3 | 3 | 25
+Magic 2011 | 3.5 | 3 | 3 | 3
+Masters Edition 4 | 3.8 | 3.2 | 3 | 3
 Mirrodin Besieged | 3.5 | 3 | 32 | 32
 Rise of the Eldrazi | 3.75 | 3 | 3 | 4
 Scars of Mirrodin | 3.9 | 3 | 2 | 0
-Worldwake | 4.25 | 4 | 3 | 15
-Zendikar | 4.25 | 4 | 6 | 30
+Worldwake | 4.25 | 3.5 | 3 | 3
+Zendikar | 4.25 | 3.5 | 6 | 30

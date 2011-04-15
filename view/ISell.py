@@ -48,7 +48,6 @@ class ISell(ITrade.ITrade):
         giving_product_name_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="giving_window", subsection="product_name_area")
         giving_product_quantity_area = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="preconfirm", frame_name="giving_window", subsection="product_quantity_area")
         
-        how_many_pixels_to_move_down = 17
         #keep while loop as long as there is still a pack to be scanned
         found = True
         while found:
@@ -103,16 +102,10 @@ class ISell(ITrade.ITrade):
                         raise ErrorHandler("Unrecognized card found")
 
             wheel(scroll_bar_loc, WHEEL_DOWN, 2)
-            if how_many_pixels_to_move_down != 17:
-                how_many_pixels_to_move_down = 17
-            else:
-                how_many_pixels_to_move_down =  18
 
             #if first scan area was already set, then relative distance from last region
             #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
-            giving_product_name_area = Region(giving_product_name_area.getX(), giving_product_name_area.getY()+how_many_pixels_to_move_down, giving_product_name_area.getW(), giving_product_name_area.getH())
-            giving_product_quantity_area = Region(giving_product_quantity_area.getX(), giving_product_quantity_area.getY()+how_many_pixels_to_move_down, giving_product_quantity_area.getW(), giving_product_quantity_area.getH())
-
+            self.next_row(giving_product_name_area, giving_product_quantity_area)
         #in case the customer has canceled the trade
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
@@ -153,7 +146,6 @@ class ISell(ITrade.ITrade):
             #this is a variable that will hold the number of pixels to move down after scanning each area
             #between some rows, theres a 4 pixel space buffer, between others there is 5, this variable will hold
             #alternating numbers 4 or 5
-            how_many_pixels_to_move_down = 0
             
             found = True
             while found:
@@ -208,14 +200,7 @@ class ISell(ITrade.ITrade):
                             break
                         else:
                             raise ErrorHandler("Unrecognized card found")
-                        
-                if how_many_pixels_to_move_down != 17:
-                    how_many_pixels_to_move_down = 17
-                else:
-                    how_many_pixels_to_move_down =  18
-                giving_number_region = Region(giving_number_region.getX(), giving_number_region.getY()+how_many_pixels_to_move_down, giving_number_region.getW(), giving_number_region.getH())
-                giving_name_region = Region(giving_name_region.getX(), giving_name_region.getY()+how_many_pixels_to_move_down, giving_name_region.getW(), giving_name_region.getH())
-            
+                self.next_row(giving_number_region, giving_name_region)
             
             #get image of number expected to scan for it first, to save time, else search through all other numbers
             expected_number = 0
