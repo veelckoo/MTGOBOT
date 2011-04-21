@@ -66,7 +66,7 @@ class MainController(object):
             else:
                 raise ErrorHandler("Default mode not set in bot settings")
                 
-    def trade_mode(self, mode=None):
+    def trade_mode(self):
         """if you wish to set the bot to only sell or buy, then set param mode to
         "sell" or "buy" to force the bot mode"""
         

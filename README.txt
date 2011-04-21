@@ -1,6 +1,6 @@
 NOTICE: if you click start.bat and a black box flashes and disappears and nothing else happens, then you probably have to edit start.bat and make sure the path of Sikuli matches the one on your system.
 
-Step1: find your sikuli x folder
+Step1: find your MTGO Bot folder
 Step2: rightlick on start.bat and "edit"
 step3: edit the filepath to match the one on your system
 
