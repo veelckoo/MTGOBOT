@@ -17,4 +17,5 @@ import controller
         
 
 bot_app = controller.MainController()
-bot_app.trade_mode()
+bot_app.maintenance_mode()
+#bot_app.trade_mode()

@@ -26,6 +26,7 @@ import IBuy
 import ISignIn
 import IClassified
 import IChat
+import ICollection
 
 class MainController(object):
     #this class will control and instanciate all the other classes
@@ -33,7 +34,7 @@ class MainController(object):
     #and pass data between the classes it owns
     
     def __init__(self):
-        
+        self.Icollection = ICollection.ICollection()
         self.Itrade = ITrade.ITrade()
         self.Isell = ISell.ISell()
         self.Ibuy = IBuy.IBuy()
@@ -140,28 +141,14 @@ class MainController(object):
             pass
             
     def maintenance_mode(self, products=None):
-        if not self.pack_inventory and not self.card_inventory:
-            #if called without specifying products, 
-            #puts the bot maintanence mode to check build inventory model
-            self.IMaintenance.refresh_inventory()
-            inventory = self.IMaintenance.get_inventory()
-            self.pack_inventory.update_stock(inventory["packs"])
-            self.card_inventory.update_stock(inventory["cards"])
-            
-        elif products and self.pack_inventory and self.card_inventory and settings["CARD_BUYING"] == "search":
-            #products information will be added to inventory
-            self.card_inventory.update_inventory(products)
-            self.pack_inventory.update_inventory(products)
-            
-        else:
-            #buying mode is set to bulk buy, so detailed product info is unavailable from transaction
-            #must rescan the inventory
-            self.IMaintenance.refresh_inventory()
-            inventory = self.IMaintenance.get_inventory()
-            self.pack_inventory.update_stock(inventory["packs"])
-            self.card_inventory.update_stock(inventory["cards"])
-            
-        return True
+        inventory_file_path = self.Icollection.export_inventory_file()
+        
+        if not inventory_file_path:
+            raise ErrorHandler("Unable to create inventory file")
+        
+        #feed in list of products to make tradable
+        self.Icollection.tradability_setup(packs_to_make_tradable=self.pack_inventory.generate_inventory_file_info, cards_to_make_tradable=self.card_inventory.generate_inventory_file_info)
+        
         
     def set_mode(self, mode):
         #set the bot mode to sell or buy

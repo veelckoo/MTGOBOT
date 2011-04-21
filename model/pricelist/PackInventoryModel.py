@@ -37,3 +37,10 @@ class PackInventoryModel(object):
         packs_inventory = [pack for pack in self.inventory]
         packs_inventory.sort()
         return packs_inventory
+        
+    def generate_inventory_file_info(self):
+        inventory_info = {}
+        for productname, productinfo in self.inventory:
+            inventory[productname] = {"max": productinfo["max"], "stock": productinfo["stock"], "set": productinfo["set"], "foil": productinfo["foil"]}
+            
+        return inventory_info

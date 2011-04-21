@@ -1,9 +1,9 @@
 #product name | sell price | buy price | in stock | desired stock
-Demon of Death's Gate |	4 | 3 | 1 | 0
-Elvish Archdruid  | 1 | 0.5 | 4 | 8
-Go for the Throat | 1  | 0.5 | 1 | 15
-Hero of Oxid Ridge   | 8  | 4 | 0 | 4
-Jace, the Mind Sculptor | 89 | 78 | 0 | 4
-Kargan Dragonlord | 11 | 7 | 2 | 3
-Koth of the Hammer | 18 | 15 | 0 | 4
-Vengevine | 36 | 31 | 4 | 8
+Demon of Death's Gate | M11 | no | 4 | 3 | 1 | 0
+Elvish Archdruid | M11 | no | 1 | 0.5 | 4 | 0
+Go for the Throat | MBS | no | 1  | 0.5 | 1 | 0
+Hero of Oxid Ridge  | MBS | no | 8  | 4 | 0 | 0
+Jace, the Mind Sculptor | WWK | no | 89 | 78 | 0 | 0
+Kargan Dragonlord | ROE | no | 11 | 7 | 2 | 0
+Koth of the Hammer | SOM | no | 18 | 15 | 0 | 0
+Vengevine | ROE | no | 36 | 31 | 4 | 0

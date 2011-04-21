@@ -58,14 +58,25 @@ class ImagesModel(object):
         return self.classified[filename]
     
     collection = {"export_to_csv": "../Images/collection/export_selected.png",
+                  "explorer_file_path_bar": "../Images/collection/file_path_bar.png",
+                  "explorer_file_name_bar": "../Images/collection/file_name_bar.png",
+                  "explorer_save_button": "../Images/collection/save_button.png", 
                   "select_all": "../Images/collection/select_all.png",
-                  "mark_all_tradeable": "../Images/collection/mark_all_tradeable.png",
-                  "mark_all_untradeable": "../Images/collection/mark_all_untradeable.png",
-                  "mark_all_beyond_4_tradeable": "../Images/collection/mark_all_beyond_4_tradeable.png",
+                  "mark_all_tradable": "../Images/collection/mark_all_tradable.png",
+                  "mark_all_untradable": "../Images/collection/mark_all_untradable.png",
+                  "mark_selected_tradable_to": "../Images/collection/mark_selection_tradable_to.png",
+                  "mark_all_beyond_4_tradable": "../Images/collection/mark_all_beyond_4_tradeable.png",
                   "import_trade_data": "../Images/collection/import_trade_data.png",
-                  "sort_name": "../Images/trade/sort_name.png", 
-                  "list_view_collection_window":"../Images/trade/list_view_button_collection_window.png", 
-                  "thumbnail_view_collection_window":"../Images/trade/thumbnail_view_button_collection_window.png"}
+                  "list_view_collection_window":"../Images/collection/list_view_button_collection_window.png", 
+                  "thumbnail_view_collection_window":"../Images/collection/thumbnail_view_button_collection_window.png",
+                  "sort_by_name": "../Images/collection/sort_name.png",
+                  "32": "../Images/collection/32.png", 
+                  "10": "../Images/collection/10.png", 
+                  "4": "../Images/collection/4.png", 
+                  "3": "../Images/collection/3.png", 
+                  "2": "../Images/collection/2.png", 
+                  "1": "../Images/collection/1.png",
+                  "search_button": "../Images/collection/search_button.png"}
     
     filters = {"version": {"all_versions": "../Images/filters/version/all_versions.png",
                                    "packs_tickets": "../Images/filters/version/packs_tickets.png",

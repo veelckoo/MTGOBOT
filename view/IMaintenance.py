@@ -4,45 +4,44 @@ path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 import sys
 sys.path.append(path_to_bot + "view")
 import Interface
-import CSVAdapter
+import InventoryAdapter
 
+sys.path.append(path_to_bot + "model/pricelist")
+import CardInventoryModel, PackInventoryModel
+import ICollection
 
 class IMaintenance(Interface.Interface):
     
     def __init__(self):
         super(IChat, self).__init__()
-        self.inventory = []
-        self.CSVAdapter = CSVAdapter.CSVAdapter()
+        self.ICollection
+        self.inventory_adapter = InventoryAdapter.InventoryAdapter()
+        self.card_pricelist_adapter = CardInventoryModel.CardInventoryModel()
+        self.pack_pricelist_adapter = PackInventoryModel.PackInventoryModel()
         
-    def refresh_inventory(self, *filter):
-        self.inventory = self.scan_inventory()
-        
-    def scan_inventory(self set=None, rarity=None, version=None):
-        #scan your collection and return a dict of all products with given parameters
-        click(self._images.menu["collection"])
-        if set:
-            self.filter_product_set(set=set)
-        if rarity:
-            self.filter_product_rarity(rarity=rarity)
-        if version:
-            self.filter_product_version(version=version)
-        rightClick(Region(App("Magic Online").window()))
-        click(self._images.collection["select_all"])
-        rightClick(Region(App("Magic Online").window()))
-        click(self._images.collection["export_to_csv"])
-        click()
-        type(path_to_bot)
-        click()
-        type("inventory")
-        
-        self.inventory = self.CSVAdapter.read_inventory_file(path_to_csv=path_to_bot+"inventory.csv"):
-        
-        if self.inventory:
+    def refresh_inventory(self, rarity=None, set=None, version=None):
+        del(self.inventory)
+        try:
+            self.inventory = self.inventory_adapter.get_inventory(rarity=rarity, set=set, version=verion)
+        except:
+            return False
+        else:
             return True
-        
-    def get_inventory():
-        return self.inventory
-        
+            
+    def get_inventory(self, rarity=None, set=None, version=None):
+        try:
+            self.inventory = self.inventory_adapter.get_inventory(rarity=rarity, set=set, version=verion)
+        except:
+            return False
+        else:
+            return True
+    
+    def set_tradable(self):
+        self.inventory_adapter.set_all_untradable()
+        for cardname, cardstats in self.inventory.items():
+            click()
+            type(cardname)
+    
     def transfer_inventory(self):
         pass
         
