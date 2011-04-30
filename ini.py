@@ -17,6 +17,12 @@ from sikuli.Sikuli import *
 #by category.  Search is better if your card buy list is small(less than a dozen or so), all is better if there
 #are many cards listed in the card_buy pricelist, meaning there are many cards you would buy.  Valid strings: "bulk", "search"
 
+#BUY_FOIL = The bot will search for and buy foil cards, currently not working.
+
+#MAX_PRODUCTS_PER_TRADE = maximum number of products that the Magic Online app will allow you to trade, currently it is 75
+
+#BULK_BUY_OPTIONS = the settings(max amt to buy, and price) for the bot to buy cards in bulk according to rarity
+
 settings = {"ERRORHANDLERAPP":"Notepad", 
             "RECORD_OUTPUT_FORMAT":"text",
             "LOGIN_WAIT":45, 
@@ -25,7 +31,7 @@ settings = {"ERRORHANDLERAPP":"Notepad",
             "NETWORK":False, 
             "DEFAULTMODE":"sell",
             "CARD_BUYING":"search",
-            "BUY_FOIL": "yes",
+            "BUY_FOIL": "no",
             "MAX_PRODUCTS_PER_TRADE": 75,
             "BULK_BUY_OPTIONS": {"max_amount": 8,
                                  "prices": {"mythic": 1,
