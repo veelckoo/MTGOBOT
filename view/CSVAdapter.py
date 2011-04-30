@@ -40,6 +40,7 @@ class CSVAdapter(object):
         inventory_file = open(path_to_bot + "/inventory/trade_data.csv", "w")
         
         for line in inventory_data:
-            inventory_file.writelines(line)
+            line_formatted = line.title()
+            inventory_file.writelines(line + "\n")
             
         inventory_file.close()

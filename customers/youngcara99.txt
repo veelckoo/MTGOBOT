@@ -1,7 +1,0 @@
-credit: 4.0
-credit : 0.5
-mirrodin besieged : 1
-date : 2011-04-09 23:25:29.927999
-type : sale
-
-

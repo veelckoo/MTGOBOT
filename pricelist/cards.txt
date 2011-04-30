@@ -1,9 +1,9 @@
-#product name | sell price | buy price | in stock | desired stock
-Demon of Death's Gate | M11 | no | 4 | 3 | 1 | 0
-Elvish Archdruid | M11 | no | 1 | 0.5 | 4 | 0
-Go for the Throat | MBS | no | 1  | 0.5 | 1 | 0
-Hero of Oxid Ridge  | MBS | no | 8  | 4 | 0 | 0
-Jace, the Mind Sculptor | WWK | no | 89 | 78 | 0 | 0
-Kargan Dragonlord | ROE | no | 11 | 7 | 2 | 0
-Koth of the Hammer | SOM | no | 18 | 15 | 0 | 0
-Vengevine | ROE | no | 36 | 31 | 4 | 0
+#product name | sell price | buy price | in stock | maximum stock | minimum stock
+Demon of Death's Gate | M11 | No | 4 | 3 | 1 | 0 | 0
+Elvish Archdruid | M11 | No | 1 | 0.5 | 4 | 0 | 0
+Go for the Throat | MBS | No | 1  | 0.5 | 1 | 0 | 0
+Hero of Oxid Ridge  | MBS | No | 8  | 4 | 0 | 0 | 0
+Jace, the Mind Sculptor | WWK | No | 89 | 78 | 0 | 0 | 0
+Kargan Dragonlord | ROE | No | 11 | 7 | 2 | 0 | 0
+Koth of the Hammer | SOM | No | 18 | 15 | 0 | 0 | 0
+Vengevine | ROE | No | 36 | 31 | 4 | 0 | 0

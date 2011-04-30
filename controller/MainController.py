@@ -141,13 +141,8 @@ class MainController(object):
             pass
             
     def maintenance_mode(self, products=None):
-        inventory_file_path = self.Icollection.export_inventory_file()
-        
-        if not inventory_file_path:
-            raise ErrorHandler("Unable to create inventory file")
-        
         #feed in list of products to make tradable
-        self.Icollection.tradability_setup(packs_to_make_tradable=self.pack_inventory.generate_inventory_file_info, cards_to_make_tradable=self.card_inventory.generate_inventory_file_info)
+        self.Icollection.tradability_setup(packs_to_make_tradable=self.pack_inventory.generate_inventory_file_info(), cards_to_make_tradable=self.card_inventory.generate_inventory_file_info())
         
         
     def set_mode(self, mode):
