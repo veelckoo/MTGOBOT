@@ -3,6 +3,7 @@ NOTICE: if you click start.bat and a black box flashes and disappears and nothin
 Step1: find your MTGO Bot folder
 Step2: rightlick on start.bat and "edit"
 step3: edit the filepath to match the one on your system
+step4: go to the /pricelist folder and edit the packs.txt and cards.txt file to create your pricelist
 
 
 ***************

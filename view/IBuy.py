@@ -57,7 +57,7 @@ class IBuy(ITrade.ITrade):
                 try:
                     pack_text_filepath = self._images.get_pack_text(phase="preconfirm", packname=packname)
                 except KeyError:
-                    print("No pack with that name found")
+                    print(str(packname) + "not found")
                     continue
                 
                 print("searching for " + str(pack_text_filepath))

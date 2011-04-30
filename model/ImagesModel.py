@@ -218,33 +218,33 @@ class ImagesModel(object):
     def get_card_text(self, phase, cardname):
         #if can't find png file for cardname in one phase, try other phase, most cards are the same except for longer names
         try:
-            card = open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname + ".png", "r")
+            card = open(path_to_bot + "Images/product/cards/text/" + phase + "/" + cardname.lower() + ".png", "r")
         except IOError:
             try:
                 if phase == "confirm":
                     alt_path = "preconfirm"
                 else:
                     alt_path = "confirm"
-                card = open(path_to_bot + "Images/product/cards/text/" + alt_path + "/" + cardname + ".png", "r")
+                card = open(path_to_bot + "Images/product/cards/text/" + alt_path + "/" + cardname.lower() + ".png", "r")
             except IOError:
-                raise Exception("PNG file for " + cardname + " text not found.")
+                raise Exception("PNG file for " + cardname.lower() + " text not found.")
             else:
                 card.close()
-                filepath = "../Images/product/cards/text/" + alt_path + "/" + cardname + ".png"
+                filepath = "../Images/product/cards/text/" + alt_path + "/" + cardname.lower() + ".png"
                 return filepath
         else:
             card.close()
-            filepath = "../Images/product/cards/text/" + phase + "/" + cardname + ".png"
+            filepath = "../Images/product/cards/text/" + phase + "/" + cardname.lower() + ".png"
             return filepath
             
     def get_card_image(self, set, cardname):
         try:
-            card = open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname + ".png", "r")
+            card = open(path_to_bot + "Images/product/cards/img/" + phase + "/" + cardname.lower() + ".png", "r")
         except IOError:
             raise Exception("PNG file for " + cardname + " image not found")
         else:
             card.close()
-            filepath = "../Images/product/cards/img/" + phase + "/" + cardname + ".png"
+            filepath = "../Images/product/cards/img/" + phase + "/" + cardname.lower() + ".png"
             return filepath
     
     card_names_list = ["Primeval Titan", "Tezzeret, Agent of Bolas", "Gideon Jura", "Venser, the Sojourner", "Jace, the Mind Sculptor"]
@@ -253,12 +253,13 @@ class ImagesModel(object):
         return self.card_names_list
     def get_pack_text(self, phase, packname):
         try:
-            pack = open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname + ".png", "r")
+            pack = open(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname.lower() + ".png", "r")
         except IOError:
+            print(path_to_bot + "Images/product/packs/text/" + phase + "/" + packname.lower() + ".png" + " not found")
             raise KeyError(packname + " not found")
         else:
             pack.close()
-            filepath = "../Images/product/packs/text/" + phase + "/" + packname + ".png"
+            filepath = "../Images/product/packs/text/" + phase + "/" + packname.lower() + ".png"
             return filepath
 
     def get_all_pack_text_as_dict(self, phase):
@@ -267,12 +268,12 @@ class ImagesModel(object):
     
     def get_pack_image(self, packname):
         try:
-            pack = open(path_to_bot + "/Images/product/packs/img/" + packname + ".png", "r")
+            pack = open(path_to_bot + "/Images/product/packs/img/" + packname.lower() + ".png", "r")
         except:
             raise KeyError(packname + " not found")
         else:
             pack.close()
-            filepath = "../Images/product/packs/" + packname + ".png"
+            filepath = "../Images/product/packs/" + packname.lower() + ".png"
             return filepath
         
     def get_all_pack_image_as_dict(self):

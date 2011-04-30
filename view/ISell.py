@@ -259,7 +259,10 @@ class ISell(ITrade.ITrade):
         
         tickets = self.app_region.exists(self._images.get_ticket())
         
-        if not self.take_product(product_loc=tickets.getTarget(), quantity_to_take=math.ceil(number_of_tickets)):
+        if not tickets:
+            self.cancel_trade()
+            return False
+        elif not self.take_product(product_loc=tickets.getTarget(), quantity_to_take=math.ceil(number_of_tickets)):
             self.cancel_trade()
             return False
         

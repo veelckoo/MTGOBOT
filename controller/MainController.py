@@ -47,7 +47,7 @@ class MainController(object):
         self.buying_greeting = "Entering buying mode.  I will search your collection for products to buy.  This may take several minutes depending how much you have available.  Please wait..."
         
         #run the controllers startup method on instanciation
-        self.mode = settings["DEFAULTMODE"]
+        self.set_mode(settings["DEFAULTMODE"])
         
     def startup(self):
         #log into Magic Online
@@ -80,10 +80,9 @@ class MainController(object):
                 #signals that the customer is taking something and the transaction will be a sale
                 #wait(2)
                 #self.Itrade.giving_window_region.onChange(self.set_mode("sell"))
-                if not mode:
-                    mode=settings["DEFAULTMODE"]
+                if not self.get_mode():
+                    self.set_mode(settings["DEFAULTMODE"])
                 
-                self.set_mode(mode=mode)
                 
                 #if done too quickly, the customers name isn't in place yet
                 wait(4)
@@ -147,11 +146,11 @@ class MainController(object):
         
     def set_mode(self, mode):
         #set the bot mode to sell or buy
-        self.status = mode
+        self.mode = mode
         
     def get_mode(self):
         #get the current mode
-        if self.status:
-            return self.status
+        if self.mode:
+            return self.mode
         else:
             raise ErrorHandler("Current Mode Uknown")
