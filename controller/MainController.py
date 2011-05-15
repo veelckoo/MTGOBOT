@@ -77,6 +77,7 @@ class MainController(object):
                 self.Ichat.minimize_chat_window()
                   
                 ## DEBUG: onChange method is not working correctly, ##
+                ## Therefore, trade mode will be hardcoded in ini.py ##
                 #signals that the customer is taking something and the transaction will be a sale
                 #wait(2)
                 #self.Itrade.giving_window_region.onChange(self.set_mode("sell"))
@@ -142,7 +143,6 @@ class MainController(object):
     def maintenance_mode(self, products=None):
         #feed in list of products to make tradable
         self.Icollection.tradability_setup(packs_to_make_tradable=self.pack_inventory.generate_inventory_file_info(), cards_to_make_tradable=self.card_inventory.generate_inventory_file_info())
-        
         
     def set_mode(self, mode):
         #set the bot mode to sell or buy

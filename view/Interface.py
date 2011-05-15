@@ -48,7 +48,7 @@ class Interface(object):
         if isinstance(loc, Location):
             hover(loc); wait(0.3)
         else:
-            raise ErrorHandler("Loc is not a location object")
+            return False
         if(button == "Right"):
             mouseDown(Button.RIGHT); wait(0.3)
         else:
@@ -58,6 +58,7 @@ class Interface(object):
         else:
             mouseUp(Button.LEFT)
         return True
+        
     def filter_product_rarity(self, rarity):
         #filter product by rarity, only applies to cards
         #valid string values are: any, common, uncommon, rare, mythic

@@ -70,8 +70,10 @@ class ITrade(Interface.Interface):
         #click on the accept button for a trade
         request_loc = self.app_region.exists(self._images.get_trade("yes_button"))
         if isinstance(request_loc, Match):
-            self._slow_click(loc=request_loc.getTarget())
-            return True
+            if self._slow_click(loc=request_loc.getTarget()):
+                return True
+            else:
+                return False
         else:
             return False
 

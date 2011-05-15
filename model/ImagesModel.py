@@ -222,9 +222,9 @@ class ImagesModel(object):
         except IOError:
             try:
                 if phase == "confirm":
-                    alt_path = "preconfirm"
-                else:
                     alt_path = "confirm"
+                else:
+                    alt_path = "preconfirm"
                 card = open(path_to_bot + "Images/product/cards/text/" + alt_path + "/" + cardname.lower() + ".png", "r")
             except IOError:
                 raise Exception("PNG file for " + cardname.lower() + " text not found.")

@@ -33,13 +33,12 @@ class ISell(ITrade.ITrade):
         
         number_of_tickets_to_take = 0 - credit
         #keep a record of product names found to prevent duplicates
-        regular_scroll_bar = None
-        mini_scroll_bar = None
-        scroll_bar = self.giving_window_region.exists(self._images.get_trade(("scroll_bar_regular")))
-        if not scroll_bar:
-            scroll_bar = self.giving_window_region.exists(self._images.get_trade(("scroll_bar_mini")))
-        #hover over scroll bar for mouse wheel manipulation
-        scroll_bar_loc = scroll_bar.getTarget()
+        
+        #mouse will hover over scroll bar and wheel down after 
+        scroll_bar_x_loc = self.giving_window_region.getX() + self.giving_window_region.getW() - 1
+        scroll_bar_y_loc = self.giving_window_region.getY() + (self.giving_window_region.getH()/2)
+        scroll_bar_loc= Location(scroll_bar_x_loc, scroll_bar_y_loc)
+        
         #scan_region will be used as the region to scan for the packs and number of packs
         #using the giving window as region, each product row is scanned for a product name and quantity
         #NOTE: A single area reserved for the text of a single product is a 192px(width) by 16/17px(height) area, with a 1px buffer in between each string
@@ -85,7 +84,7 @@ class ISell(ITrade.ITrade):
                             #for booster packs, there is a specific order in which they appear in the list,
                             #when a pack is found, remove all packs before and including that pack in the keys
                             #list as they will not appear any further below
-                            pack_index = product_names_list.index(product_name)+1
+                            pack_index = product_names_list.index(product_name)
                             product_names_list = product_names_list[pack_index:]
                             break
                     
@@ -100,12 +99,16 @@ class ISell(ITrade.ITrade):
                         break
                     else:
                         raise ErrorHandler("Unrecognized card found")
-
             wheel(scroll_bar_loc, WHEEL_DOWN, 2)
-
-            #if first scan area was already set, then relative distance from last region
-            #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
-            self.next_row(giving_product_name_area, giving_product_quantity_area)
+            
+            #if after the mousewheel down action, the products have not moved, then move down a slot.
+            #if the products have shifted up, that means the scroll bar moved and product scan slot should remain the same,
+            #because there is a new product in the current product slot
+            if giving_product_name_area.exists(self._images.get_pack_text(phase="preconfirm", packname=product_names_list[0])):
+                #if first scan area was already set, then relative distance from last region
+                #scan area will be slightly larger than estimated height of product slot to compensate for any variances, to compensate for larger region, the Y coordinate -1
+                self.next_row(giving_product_name_area, giving_product_quantity_area)
+            
         #in case the customer has canceled the trade
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
