@@ -4,13 +4,14 @@ path_to_bot = getBundlePath().rsplit("\\", 1)[0] + "\\"
 import sys, copy
 sys.path.append(path_to_bot + "model/pricelist")
 import InventoryAdapter
+import signals
 
 
 class PackInventoryModel(object):
     #DAL layer for pricelist for buying and selling packs
-    def __init__(self):
-        self.inventory_adapter = InventoryAdapter.InventoryAdapter()
-        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+    def __init__(self, dbtype):
+        self.inventory_adapter = InventoryAdapter.InventoryAdapter(adapter=dbtype)
+        self.inventory = self.inventory_adapter.read_inventory(product="packs")
     
     
     #set prices is to be done in gui bot settings prior to transaction
@@ -25,10 +26,19 @@ class PackInventoryModel(object):
         return self.inventory[name]["sell"]
     
     def get_stock(self, pack_abbr):
-        return self.inventory[pack_abbr]["stock"]
+        if len(signals.pack_get_stock.receivers) > 0:
+            return signals.pack_get_stock.send(sender=self.__class__, args=pack_abbr)
+        else:
+            signals.pre_pack_get_stock.send(sender=self.__class__, args=pack_abbr)
+            return self.inventory[pack_abbr]["stock"]
     def update_stock(self, pack):
-        self.inventory_adapter.set_stock(product=pack)
-        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+        if len(signals.pack_update_Stock.receivers) > 0:
+            signals.pack_get_stock.send(sender=self.__class__, args=pack)
+        else:
+            signals.pre_pack_get_stock.send(sender=self.__class__, args=pack)
+            self.inventory_adapter.set_stock(product=pack)
+            self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+            signals.post_pack_get_stock.send(sender=self.__class__, args=pack)
     def get_max_stock(self, pack_abbr):
         return self.inventory[pack_abbr]["max"]
     def get_min_stock(self, pack_abbr):
@@ -41,8 +51,12 @@ class PackInventoryModel(object):
         return packs_inventory
         
     def generate_inventory_file_info(self):
-        inventory_info = {}
-        for productname, productinfo in self.inventory.items():
-            inventory_info[productname] = {"max": productinfo["max"], "min": productinfo["min"], "stock": productinfo["stock"], "set": productinfo["set"], "foil": productinfo["foil"]}
-            
-        return inventory_info
+        if len(signals.pack_generate_inventory_file_info.receivers) > 0:
+            return signals.pack_generate_inventory_file_info.send(sender=self.__class__)
+        else:
+            signals.pre_pack_generate_inventory_file_info.send(sender=self.__class__)
+            inventory_info = {}
+            for productname, productinfo in self.inventory.items():
+                inventory_info[productname] = {"max": productinfo["max"], "min": productinfo["min"], "stock": productinfo["stock"], "set": productinfo["set"], "foil": productinfo["foil"]}
+            signals.post_pack_generate_inventory_file_info.send(sender=self.__class__)
+            return inventory_info

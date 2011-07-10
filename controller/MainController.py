@@ -11,7 +11,10 @@ import sys
 sys.path.append(path_to_bot + "model")
 sys.path.append(path_to_bot + "controller")
 sys.path.append(path_to_bot + "view")
+sys.path.append(path_to_bot + "event")
 import ErrorHandler
+from Signal import *
+from signals import *
 
 sys.path.append(path_to_bot + "model/customer")
 import CustomerDAL
@@ -28,6 +31,11 @@ import IClassified
 import IChat
 import ICollection
 
+@receiver(pack_get_stock)
+def test_signal(signal=None, sender=None, **named):
+    print("YEAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    return "YEA"
+
 class MainController(object):
     #this class will control and instanciate all the other classes
     #it will contain the logic and manipulate all the data
@@ -41,10 +49,12 @@ class MainController(object):
         self.Isignin = ISignIn.ISignIn()
         self.Iclassified = IClassified.IClassified()
         self.Ichat = IChat.IChat()
-        self.pack_inventory = PackInventoryModel.PackInventoryModel()
-        self.card_inventory = CardInventoryModel.CardInventoryModel()
-        self.selling_greeting = "Entering selling mode.  When you are finished taking products, please type the word \"DONE\" in all lowercase, and click confirm."
-        self.buying_greeting = "Entering buying mode.  I will search your collection for products to buy.  This may take several minutes depending how much you have available.  Please wait..."
+        self.pack_inventory = PackInventoryModel.PackInventoryModel(dbtype=settings["DBTYPE"])
+        self.card_inventory = CardInventoryModel.CardInventoryModel(dbtype=settings["DBTYPE"])
+        self.selling_greeting = "Entering selling mode.  When you are finished taking products, \
+        please type the word \"DONE\" in all lowercase, and click confirm."
+        self.buying_greeting = "Entering buying mode.  I will search your collection for products to buy.  \
+        This may take several minutes depending how much you have available.  Please wait..."
         
         #run the controllers startup method on instanciation
         self.set_mode(settings["DEFAULTMODE"])
@@ -69,6 +79,8 @@ class MainController(object):
     def trade_mode(self):
         """if you wish to set the bot to only sell or buy, then set param mode to
         "sell" or "buy" to force the bot mode"""
+        
+        print( self.pack_inventory.get_stock(pack_abbr="SOM") )
         
         #puts the bot into sell mode, will wait for trade request
         if(self.Itrade.start_wait("incoming_request")):

@@ -3,14 +3,69 @@
 from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
-import sys, datetime
-sys.path.append(path_to_bot + "view")
+#MySQL connection settings needed
+exec(open(path_to_bot + "ini.py", "rb").read())
 
+import sys, datetime
+sys.path.append(path_to_bot + "model/pricelist")
+sys.path.append(path_to_bot + "model/pricelist/db_adapter")
+
+import Mysql
 import CSVAdapter
 
 class InventoryAdapter(object):
-
-    def read_inventory_from_db(self, product):
+    def __init__(self, adapter):
+        """
+        @adapter: string
+        sets and initiates functions for adapter
+        """
+        
+        if adapter and isinstance(adapter, str):
+            if adapter == "mysql":
+                if settings["mysql"]["use"] == True:
+                    self.adapter = "mysql"
+                else:
+                    raise ErrorHandler("MySQL settings have not been set or are invalid")
+            else:
+                self.adapter = "txt"
+        else:
+            raise ErrorHandler("Non-string value passed as adapter to InventoryAdapter.__init__")
+    
+    def read_inventory(self, product):
+        """
+        @product: string
+        calls the read inventory method for previously specified adapter
+        @return: dict
+        """
+        adapter_funcs = {"txt": self.read_inventory_from_txt, 
+                         "mysql": self.read_inventory_from_mysql}
+        if product == "packs" or product == "cards":
+            try:
+                return adapter_funcs[self.adapter](product)
+            except KeyError:
+                raise ErrorHandler("No adapters found for InventoryAdapter")
+        else:
+            raise ErrorHandler("Must pass either 'packs' or 'cards' to read_inventory")
+    
+    def read_inventory_from_mysql(self, product):
+        """
+        @product string
+        will query MySQL db for pricing information
+        """
+        try:
+            Mysql.connect(settings["mysql"]["url"], settings["mysql"]["username"], settings["mysql"]["password"])
+        except:
+            pass
+        query_results = Mysql.query()
+        if query_results == None:
+            raise ErrorHandler("MySQL DB query returned None or there was an error")
+        
+        #do something with query results
+        
+        Mysql.close()
+        
+    
+    def read_inventory_from_txt(self, product):
         """valid arguments for product are: "packs" or "cards" """
         #this will return a dictionary containg all the buy or sell prices for requested products
         try:
@@ -28,7 +83,7 @@ class InventoryAdapter(object):
                break
             if "#" in newline:
                 continue
-                
+
             single_product = newline.split("|")
             
             try:
@@ -50,3 +105,20 @@ class InventoryAdapter(object):
                 pricelist_dict[product_name] = {"sell": sell_price, "buy": buy_price, "stock": in_stock, "min": min_stock, "max": max_stock, "set": set, "foil": foil}
         
         return pricelist_dict
+    
+    def update_inventory(self, product, update_info):
+        """
+        @product: string, update_info: dict
+        calls the update inventory method for previously specified adapter
+        @return: boolean, or Exception if passed incorrect product var
+        """
+        adapter_funcs = {"txt": self.update_inventory_from_txt, 
+                         "mysql": self.update_inventory_from_mysql,
+                         "excel": self.update_inventory_from_excel}
+        if product == "packs" or product == "cards":
+            if adapter_funcs[self.adapter](product, update_info):
+                return True
+            else:
+                return False
+        else:
+            raise ErrorHandler("Must pass either 'packs' or 'cards' to read_inventory")

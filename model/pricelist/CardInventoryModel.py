@@ -2,15 +2,18 @@ from sikuli.Sikuli import *
 path_to_bot = getBundlePath().split("bot.sikuli")[0]
 
 import sys, copy
+sys.path.append(path_to_bot + "model")
 sys.path.append(path_to_bot + "model/pricelist")
+sys.path.append(path_to_bot + "event")
+import signals
 import InventoryAdapter
 
 
 class CardInventoryModel(object):
     #DAL layer for pricelist for buying and selling single cards
-    def __init__(self):
-        self.inventory_adapter = InventoryAdapter.InventoryAdapter()
-        self.inventory = self.inventory_adapter.read_inventory_from_db(product="cards")
+    def __init__(self, dbtype):
+        self.inventory_adapter = InventoryAdapter.InventoryAdapter(adapter=dbtype)
+        self.inventory = self.inventory_adapter.read_inventory(product="cards")
         
     #set prices is to be done in gui bot settings prior to transaction
     def set_buy_price(self, name, price):
@@ -24,12 +27,24 @@ class CardInventoryModel(object):
         return self.inventory[name]["sell"]
     
     def get_stock(self, cardname):
-        return self.inventory[cardname]["stock"]
+        if len(signals.card_get_stock.receivers) > 0:
+            return signals.card_get_stock.send(sender=self.__class__, args=cardname)
+        else:
+            signals.pre_card_get_stock.send(sender=self.__class__, args=cardname)
+            return self.inventory[cardname]["stock"]
+        
     def update_stock(self, card):
-        self.inventory_adapter.set_stock(product=card)
-        self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+        if len(signals.card_update_stock.receivers) > 0:
+            signals.card_update_stock.send(sender=self.__class__, args=card)
+        else:
+            signals.pre_card_update_stock.send(sender=self.__class__, args=card)
+            self.inventory_adapter.set_stock(product=card)
+            self.inventory = self.inventory_adapter.read_inventory_from_db(product="packs")
+            signals.post_card_update_stock.send(sender=self.__Class_, args=card)
+    
     def get_max_stock(self, cardname):
         return self.inventory[cardname]["max"]
+    
     def get_min_stock(self, cardname):
         return self.inventory[cardname]["min"]
     
@@ -37,8 +52,12 @@ class CardInventoryModel(object):
         return [cardname for cardname in self.inventory.keys()]
         
     def generate_inventory_file_info(self):
-        inventory_info = {}
-        for productname, productinfo in self.inventory.items():
-            inventory_info[productname] = {"max": productinfo["max"], "min": productinfo["min"], "stock": productinfo["stock"], "set": productinfo["set"], "foil": productinfo["foil"]}
-            
-        return inventory_info
+        if len(signals.card_generate_inventory_file_info.receivers) > 0:
+            return signals.card_generate_inventory_file_info.send(sender=self.__class__)
+        else:
+            signals.pre_card_generate_inventory_file_info.send(sender=self.__class__)
+            inventory_info = {}
+            for productname, productinfo in self.inventory.items():
+                inventory_info[productname] = {"max": productinfo["max"], "min": productinfo["min"], "stock": productinfo["stock"], "set": productinfo["set"], "foil": productinfo["foil"]}
+            signals.post_card_generate_inventory_file_info.send(sender=self.__class__)
+            return inventory_info

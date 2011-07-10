@@ -1,3 +1,0 @@
-
-class ConnectionSettings(object):
-    pass

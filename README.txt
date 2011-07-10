@@ -6,6 +6,18 @@ step3: edit the filepath to match the one on your system
 step4: go to the /pricelist folder and edit the packs.txt and cards.txt file to create your pricelist
 step5: right click and edit the ini.py file in the root directory of the app, and read through settings carefully and set them
 
+*****************
+Latest News:*****
+*****************
+
+This Magic Online Trading Bot was created  by Raymond Cheung.  I can be contacted at darkray16@yahoo.com.
+
+My username on Magic Online is darkray16 .  If you're online and see me on, send me a a challenge, I play all formats and would enjoy playing with a follow Github member.
+
+Currently, I am adding support for plugins.  The method through which I am doing this is taken from Django's Signal class and signal structure.  It's similar to event hooking in Wordpress.  A full guide will come later when I have the signaling system fully working.
+Hopefully this will lead to others being able to develop plugins for the bot.
+
+I am also working on add more support for using inventory databases besides .txt files.
 
 ***************
 Message: ******
@@ -18,19 +30,6 @@ The only thing missing is just to add some png images for the name of cards I ha
 
 I am going to be working on developing a module for the bot that I was planning to anyways.  It is a web crawler that I plan to use to data mine all the popular websites for prices(mtgotraders.com, cardshark.com, etc) and storing the price information in a file that the bot can use to make it's pricelist.  With this, the bot could have a pricelist that would be updated hourly.
 
-*****************
-Latest News:*****
-*****************
-Checkout what I am currently working on with this bot or other apps I'm building at 
-
-https://twitter.com/Darkray16
-
-
-This Magic Online Trading Bot was created  by Raymond Cheung.  I can be contacted at darkray16@yahoo.com .
-
-My username on Magic Online is darkray16 .  If you're online and see me on, send me a a challenge, I play all formats and would enjoy playing with a follow Github member.
-
-Of it's four core functions, buying booster packs, selling booster packs, buying cards, and selling cards, three are currently working.  It is able to buy and sell booster packs, and buy cards.
 
 
 ***************

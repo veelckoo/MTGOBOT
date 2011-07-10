@@ -3,6 +3,9 @@ from sikuli.Sikuli import *
 #this object will hold all global settings for the application
 #ERRORHANDLERAPP = How the app will output errors, possible values: Notepad
 
+#DBTYPE = what kind of database will you use for product information, 
+#will be used with inventory adapter.  valid strings: "txt", "mysql"
+
 #RECORD_OUTPUT_FORMAT = how you want your customer records to be recorded, valid strings: "text", "mysql", "excel"
 
 #USERNAME = Your Magic Online username
@@ -23,7 +26,10 @@ from sikuli.Sikuli import *
 
 #BULK_BUY_OPTIONS = the settings(max amt to buy, and price) for the bot to buy cards in bulk according to rarity
 
-settings = {"ERRORHANDLERAPP":"Notepad", 
+settings = {
+            "DBTYPE":"txt",
+            "mysq": { "use": "databasename"},
+            "ERRORHANDLERAPP":"Notepad", 
             "RECORD_OUTPUT_FORMAT":"text",
             "LOGIN_WAIT":45, 
             "USERNAME": "yourmagiconlineusername", 
@@ -58,7 +64,7 @@ bulkcardbuying = {"rarity":{"mythic": "yes",
                           {"Worldwake": "yes"},
                           {"Rise of the Eldrazi": "yes"},
                           {"Shards of Alara": "no"},
-                          {"Conflux": "noConflux"},
+                          {"Conflux": "no"},
                           {"Alara Reborn": "no"},
                           {"Lorwyn": "no"},
                           {"Morningtide": "no"},

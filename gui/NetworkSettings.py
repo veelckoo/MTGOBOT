@@ -1,3 +1,0 @@
-
-class NetworkSettings(object):
-    pass
