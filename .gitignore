@@ -4,7 +4,7 @@
 
 +*.com
 
-+*.class
+*.class
 
 +*.dll	
 
@@ -52,19 +52,19 @@
 
 +*.sqlite
 
-+
+*.txt
 
 +# OS generated files #
 
 +######################
 
-+.DS_Store?
+.DS_Store?
 
-+ehthumbs.db
+ehthumbs.db
 
-+Icon?
+Icon?
 
-+Thumbs.db
+Thumbs.db
 
 +
 
@@ -72,7 +72,7 @@
 
 +#########################
 
-+.pyc
+.pyc
 
 +
 +
@@ -80,3 +80,6 @@
 +##########################
 +transactions.txt
 +customers/*.txt
+
+
+plugins/*

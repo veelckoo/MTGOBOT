@@ -53,7 +53,7 @@ class ImagesModel(object):
                     'submit_edit': "../Images/submit_edit_button.png", 
                     'edit_posting': "../Images/edit_posting_button.png", 
                     "search_posts":"../Images/search_posts.png"}
-                    
+    
     def get_classified(self, filename):
         return self.classified[filename]
     
@@ -222,9 +222,9 @@ class ImagesModel(object):
         except IOError:
             try:
                 if phase == "confirm":
-                    alt_path = "confirm"
-                else:
                     alt_path = "preconfirm"
+                else:
+                    alt_path = "confirm"
                 card = open(path_to_bot + "Images/product/cards/text/" + alt_path + "/" + cardname.lower() + ".png", "r")
             except IOError:
                 raise Exception("PNG file for " + cardname.lower() + " text not found.")

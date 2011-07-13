@@ -136,14 +136,14 @@ class IBuy(ITrade.ITrade):
 
     def search_for_bulk_cards(self, tickets_to_give=0.0):
         #this will buy all rares, mythics, uncommons, and/or commons that the customer has available
-        
+
         number_list = self._images.get_all_numbers_as_dict(category="trade", phase="collection")
-        
+
         if settings["BUY_FOIL"] == "yes":
             self.filter_product_version("all_versions")
         else:
             self.filter_product_version("regular")
-        
+
         #will iterate once for filtering by rarity then by set
         for rarity, valid in bulkcardbuying["rarity"].iteritems():
             #MTGO has a maximum of 75 products that can be given or taken in a single transaction
@@ -151,7 +151,7 @@ class IBuy(ITrade.ITrade):
                 break
             if self.number_of_products_taken >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
-                    
+
             if tickets_to_give >= settings["MAX_PRODUCTS_PER_TRADE"]:
                 break
             if valid == "yes":
@@ -164,7 +164,7 @@ class IBuy(ITrade.ITrade):
                             break
                         if valid == "yes":
                             self.filter_product_set(set=setname)
-                            
+
                             found = True
                             while found:
                                 if self.topmost_product_quantity_area.exists(self._images.trade["empty"]):
