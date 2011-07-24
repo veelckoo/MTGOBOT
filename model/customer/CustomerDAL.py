@@ -17,7 +17,7 @@ from datetime import datetime
 class CustomerDAL(object):
 
     def __init__(self, adapter, customer_name):
-        adapters = {"text":TextAdapter.TextAdapter(customer_name=customer_name),
+        adapters = {"txt":TextAdapter.TextAdapter(customer_name=customer_name),
                     "excel":ExcelAdapter.ExcelAdapter(customer_name=customer_name),
                     "mysql":MySQLAdapter.MySQLAdapter(customer_name=customer_name)}
         self.db_adapter = adapters.get(adapter, lambda: None)

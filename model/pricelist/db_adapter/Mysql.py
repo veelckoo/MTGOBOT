@@ -5,6 +5,12 @@ from java.sql import *
 from java.lang import Class
 from java.sql import DriverManager
 
+from sikuli.Sikuli import *
+path_to_bot = getBundlePath().split("bot.sikuli")[0]
+
+#MySQL connection settings needed
+exec(open(path_to_bot + "ini.py", "rb").read())
+
 def connect(dburl="jdbc:mysql://localhost:3306/mtgo", dbuser="root", dbpass=None):
     try:
         try:
@@ -14,14 +20,53 @@ def connect(dburl="jdbc:mysql://localhost:3306/mtgo", dbuser="root", dbpass=None
         conn = DriverManager.getConnection(dburl, dbuser, dbpass)
     except SQLException, error:
         raise ErrorHandler("MySQL error: %s" % str(error))
+    else:
+        return conn
+        
+def close(conn):
+    conn.close()
+    
+def query(query, conn):
+    """
+    Returns None if you haven't establed a connection yet.
+    Use for select queries only, no inserts, updates, etc.
+    """
+    data = {}
+    stmnt = conn.createStatement()
+    sql = query
+    results = stmnt.executeQuery(sql)
 
+    product_dict = {}
+    while results.next():
+            name = results.getString("name").strip()
+            set = results.getString("block").strip()
+            foil = results.getString("foil").strip()
+            sell = float(results.getString("sell_price").strip())
+            buy = float(results.getString("buy_price").strip())
+            stock = int(results.getString("in_stock").strip())
+            min = int(results.getString("minimum_stock").strip())
+            max = int(results.getString("maximum_stock").strip())
+            
+            product_dict[name] = {"set": set, "foil": foil, "sell": sell, "buy": buy, "stock": stock, "min": min, "max": max}
+    results.close()
+    stmnt.close()
+    
+    return product_dict
+    
 def get_product_info(product):
     """
     @product: string
     will call query with select statement
     @return: dict
     """
-    pass
+    db_url = "jdbc:mysql://" + settings["mysql"]["host"] + ":" + settings["mysql"]["port"] + "/" + settings["mysql"]["db"]
+    conn = connect(db_url, settings["mysql"]["username"], settings["mysql"]["password"])
+    sql_stmnt = "SELECT * FROM " + str(product) + ";"
+    product_request = query(sql_stmnt, conn)
+    if product_request == None:
+        raise ErrorHandler("MySQL DB query returned None or there was an error")
+    close(conn)
+    return product_request
     
 def set_product_info(product, product_info):
     """
@@ -31,25 +76,9 @@ def set_product_info(product, product_info):
     otherwise it will use insert statement.
     @return: boolean
     """
-    pass
+    conn = connect()
+    sql_stmnt = ""
     
-def query(query):
-    """
-    Returns None if you haven't establed a connection yet.
-    Use for select queries only, no inserts, updates, etc.
-    """
-    if not conn:
-        return None
-    data = {}
-    stmnt = conn.createStatement()
-    sql = query
-    results = stmnt.executeQuery(sql)
-
-    while results.next():
-        data["quantity"] = results.getString("quantity")
-    data[2] = results.getString(2)
-    results.close()
-    stmnt.close()
-
-def close():
-    conn.close()
+    results = query(sql_stmnt, conn)
+    
+    close(conn)

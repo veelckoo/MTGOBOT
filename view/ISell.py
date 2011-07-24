@@ -89,6 +89,7 @@ class ISell(ITrade.ITrade):
                             break
                     
                     if product_type == "pack":
+                        print(product_name + ": " + str(self.pack_inventory.get_sell_price(product_name)))
                         number_of_tickets_to_take += self.pack_inventory.get_sell_price(product_name) * amount
                     elif product_type == "card":
                         number_of_tickets_to_take += self.card_inventory.get_sell_price(product_name) * amount

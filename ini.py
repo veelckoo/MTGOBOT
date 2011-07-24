@@ -6,7 +6,7 @@ from sikuli.Sikuli import *
 #DBTYPE = what kind of database will you use for product information, 
 #will be used with inventory adapter.  valid strings: "txt", "mysql"
 
-#RECORD_OUTPUT_FORMAT = how you want your customer records to be recorded, valid strings: "text", "mysql", "excel"
+#RECORD_OUTPUT_FORMAT = how you want your customer records to be recorded, valid strings: "txt", "mysql", "excel"
 
 #USERNAME = Your Magic Online username
 
@@ -28,14 +28,19 @@ from sikuli.Sikuli import *
 
 settings = {
             "DBTYPE":"txt",
-            "mysq": { "use": "databasename"},
+            "mysql": { "host": "localhost",
+                      "port": "3306",
+                      "db": "mtg",
+                      "username": "root",
+                      "password": None
+                      },
             "ERRORHANDLERAPP":"Notepad", 
-            "RECORD_OUTPUT_FORMAT":"text",
+            "RECORD_OUTPUT_FORMAT":"txt",
             "LOGIN_WAIT":45, 
             "USERNAME": "yourmagiconlineusername", 
             "PASSWORD":"yourpasswordhere", 
             "NETWORK":False, 
-            "DEFAULTMODE":"sell",
+            "DEFAULTMODE":"buy",
             "CARD_BUYING":"search",
             "BUY_FOIL": "no",
             "MAX_PRODUCTS_PER_TRADE": 75,

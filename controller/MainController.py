@@ -13,8 +13,7 @@ sys.path.append(path_to_bot + "controller")
 sys.path.append(path_to_bot + "view")
 sys.path.append(path_to_bot + "event")
 import ErrorHandler
-from Signal import *
-from signals import *
+from controller_signals import *
 
 sys.path.append(path_to_bot + "model/customer")
 import CustomerDAL
@@ -30,6 +29,10 @@ import ISignIn
 import IClassified
 import IChat
 import ICollection
+
+@receiver(pre_trade_loop)
+def signal_check():
+    print("Entering trade loop")
 
 class MainController(object):
     #this class will control and instanciate all the other classes
@@ -55,7 +58,7 @@ class MainController(object):
         self.set_mode(settings["DEFAULTMODE"])
         
     def startup(self):
-        signals.pre_startup()
+        pre_startup.send(sender=self.__class__)
         #log into Magic Online
         self.define_region()
         if self.Isignin_in.log_in():
@@ -71,15 +74,16 @@ class MainController(object):
                 self.maintenance_mode()
             else:
                 raise ErrorHandler("Default mode not set in bot settings")
-        signals.post_startup()
+        
+        post_startup.send(sender=self.__class__)
         
     def trade_mode(self):
         """if you wish to set the bot to only sell or buy, then set param mode to
         "sell" or "buy" to force the bot mode"""
-        signals.pre_trade_loop()
+        pre_trade_loop.send(sender=self.__class__)
         #puts the bot into sell mode, will wait for trade request
         while True:
-            signals.pre_trade()
+            pre_trade.send(sender=self.__class__)
             if(self.Itrade.start_wait("incoming_request")):
                 #minimize the chat window to the side
                 if(self.Itrade.accept_trade()):
@@ -101,6 +105,7 @@ class MainController(object):
                     
                     #enter selling mode
                     if self.get_mode() == "sell":
+                        pre_sell_mode.send(sender=self.__class__)    
                         self.Isell.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
                         self.Ichat.type_msg("Hello, " + str(customer_name) + ". " + self.selling_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                         self.Isell.set_windows()
@@ -115,10 +120,12 @@ class MainController(object):
                                     customer_model.write_transaction(type="sale", productname=product["name"], quantity=product["quantity"])
                             customer_model.write_credits((1-(products_sold["total_tickets"]%1)))
                             customer_model.write_transaction_date(time=datetime.now())
-
+                        post_sell_mode.send(sender=self.__class__)
                         
                     #enter buying mode
                     elif self.get_mode() == "buy":
+                        
+                        pre_buy_mode.send(sender=self.__class__)
                         self.Ibuy.update_inventory(card_inventory=self.card_inventory, pack_inventory=self.pack_inventory)
                         self.Ichat.type_msg("Hello, " + str(customer_name) + ". " + self.buying_greeting + " You have " + str(customer_model.read_credits()) + " credits saved.")
                         self.Ibuy.set_windows()
@@ -133,23 +140,27 @@ class MainController(object):
                                     continue
                                 for product in products:
                                     customer_model.write_transaction(type="purchase", productname=product["name"], quantity=product["quantity"])
-                            customer_model.write_credits(products_bought["total_tickets"] % 1)
+                            
+			    pre_transaction_record.send(sender=self.__class__, args=products_bought)
+			    customer_model.write_credits(products_bought["total_tickets"] % 1)
                             customer_model.write_transaction_date(time=datetime.now())
+                            post_transaction_record.send(sender=self.__class__, args=products_bought)
 
+                        post_buy_mode.send(sender=self.__class__)
                     if customer_model.save():
                         print("saved")
                     else:
                         print("not saved")
-            signals.post_trade()
-        signals.post_trade_loop()
+            post_trade.send(sender=self.__class__)
+        post_trade_loop.send(sender=self.__class__)
         
     def transfer_mode(self):
-        signals.pre_transfer_mode()
+        pre_transfer_mode()
         #puts the bot into transfer mode, will check inventory and transfer items to other bots
         #check if bot is part of network
         if(BotSetting.getSetting("NETWORK")):
             pass
-        signals.post_transfer_mode()
+        post_transfer_mode.send(sender=self.__class__)
         
     def maintenance_mode(self, products=None):
         #feed in list of products to make tradable
