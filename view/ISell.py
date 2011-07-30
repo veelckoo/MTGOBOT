@@ -19,7 +19,6 @@ class ISell(ITrade.ITrade):
         
     def search_for_products(self, credit=0):
         #searches a certain area for any image in a dictionary
-
         #combine all cards and packs for sale into a list
         product_names_list = self.pack_inventory.get_sorted_pack_list() + self.card_inventory.get_card_name_list()
         product_names_list.sort()
@@ -95,7 +94,7 @@ class ISell(ITrade.ITrade):
                         number_of_tickets_to_take += self.card_inventory.get_sell_price(product_name) * amount
                     else:
                         raise ErrorHandler("Product type has not been set, but product detected")
-                    products.append(product)
+                    products.append(product_name)
                     if found:
                         break
                     else:
@@ -113,7 +112,7 @@ class ISell(ITrade.ITrade):
         #in case the customer has canceled the trade
         if self.app_region.exists(self._images.get_trade("canceled_trade")):
             return False
-
+        self.products = products
         return number_of_tickets_to_take
             
     def confirmation_scan(self, tickets_to_take, credit=0):
@@ -127,7 +126,8 @@ class ISell(ITrade.ITrade):
             #keeps record of products found and their amount so far
             giving_products_found = {"packs":[], "cards":[]}
             
-            product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
+            products_names_list = [ productname for productname in self.products ]
+            #product_names_list = self.card_inventory.get_card_name_list() + self.pack_inventory.get_sorted_pack_list()
             product_names_list.sort()
             
             numbers = self._images.get_all_numbers_as_dict(category="trade", phase="preconfirm")
@@ -139,7 +139,6 @@ class ISell(ITrade.ITrade):
             #receiving_name_region = Region(confirm_button.getX()-257, confirm_button.getY()+42, 163, 14)
             receiving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_quantity_area")
             receiving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="taking_window", subsection="product_name_area")
-            
             
             giving_number_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_quantity_area")
             giving_name_region = self.frame_grab.get_trade_frame(app_region=self.app_region, phase="confirm", frame_name="giving_window", subsection="product_name_area")

@@ -17,7 +17,7 @@ My username on Magic Online is darkray16 .  If you're online and see me on, send
 Currently, I am adding support for plugins.  The method through which I am doing this is taken from Django's Signal class and signal structure.  It's similar to event hooking in Wordpress.  A full guide will come later when I have the signaling system fully working.
 Hopefully this will lead to others being able to develop plugins for the bot.
 
-I am also working on add more support for using inventory databases besides .txt files.
+I have added support for using MySQL database for your inventory information instead of just text files.  A guide/instructions will come soon.
 
 ***************
 Message: ******
@@ -36,14 +36,16 @@ I am going to be working on developing a module for the bot that I was planning 
 Disclaimer:****
 ***************
 I am a new programmer who is still studying much.  If you find some places in the app which I can improve, please send me an email.  It would be greatly appreciated.
+I make no claims or guarantees about my bot and you use it at your own risk.
 
 
 **********
-Demo:*****
+Video Tutorials:*****
 **********
 You can see a demonstration of the bot at: http://www.youtube.com/watch?v=wQadgKVrGYs
 
-
+I have added a video to youtube which will show you how to add cards/packs to your image folder.  This will be needed in case the bot shows an error that it cannot find a png file/image file for a product.
+You can find the video here: http://www.youtube.com/watch?v=LyPO4XBFVBU
 ******************
 Requirements:*****
 ******************
@@ -92,4 +94,4 @@ In the main folder you will find the main app file, "bot.sikuli".  It instantiat
 **********************
 Planned Features:*****
 **********************
-I plan to add a networking module which will allow the bot to communicate with a central bot server.  I also want the bot to be able to interact with other bots from the same owner, so a single user can spread his products out between several bots, which is where the networking would come in.
+I am planning plugin support for my bot through event hooking/signals.  What this means is you can customize features of the bot to suit your own needs.  Once I'm closer to completion I will release more information about the full scope of customizability and a guide.

@@ -242,24 +242,23 @@ class IBuy(ITrade.ITrade):
                     
                     print("Max amount to buy: " + str(max_buy))
                     
+                    amount = 0
                     for num in range(len(number_list)):
                         if num == 0:
                             continue
                         
-                        #this loop NEEDS optimization
                         #if current number being checked, is higher than max buy, then take all that they have
                         if num > max_buy:
                             amount = max_buy
-                            
+                            break
                         numbersearch = self.topmost_product_quantity_area.exists(Pattern(number_list[num]).similar(0.9))
-                        
                         if numbersearch:
                             if num < max_buy:
                                     #customer has less than your max buy, so take all that they have
                                     amount = num
-                            else:
+                            elif max_buy > 0:
                                 #if customer has more packs then you want, only take however much you want
-                                amount = max_buy if max_buy > 0 else 0
+                                amount = max_buy
                             break
                     
                     if amount > 0:
