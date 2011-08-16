@@ -39,13 +39,15 @@ I am a new programmer who is still studying much.  If you find some places in th
 I make no claims or guarantees about my bot and you use it at your own risk.
 
 
-**********
+*********************
 Video Tutorials:*****
-**********
+*********************
 You can see a demonstration of the bot at: http://www.youtube.com/watch?v=wQadgKVrGYs
 
 I have added a video to youtube which will show you how to add cards/packs to your image folder.  This will be needed in case the bot shows an error that it cannot find a png file/image file for a product.
 You can find the video here: http://www.youtube.com/watch?v=LyPO4XBFVBU
+
+
 ******************
 Requirements:*****
 ******************

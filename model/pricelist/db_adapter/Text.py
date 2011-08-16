@@ -38,7 +38,7 @@ def get_product_info(product):
             continue
 
         single_product = newline.split("|")
-        
+
         try:
                 product_name = str(single_product[0]).strip()
                 set = str(single_product[1]).strip()
